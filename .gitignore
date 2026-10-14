@@ -94,3 +94,4 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 /b4-registration-security.txt
 /prisma-introspection-preview.prisma
 /sql/*-result.txt
+/b7-lifecycle-function-review.txt
