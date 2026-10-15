@@ -1,0 +1,31 @@
+import {beforeEach,describe,it,expect,vi} from 'vitest';
+import {BadRequestException,ForbiddenException,ServiceUnavailableException,UnauthorizedException} from '@nestjs/common';
+import type {ConfigService} from '@nestjs/config';
+import type {SessionBearerTokenService} from '../auth/session-bearer-token.service.js';
+import type {GymProAuthenticatedRequest} from '../auth/authenticated-session.guard.js';
+const db=vi.hoisted(()=>({query:vi.fn(),end:vi.fn(),on:vi.fn()}));
+vi.mock('pg',()=>{class Pool{query=db.query;end=db.end;on=db.on;}return{default:{Pool},Pool};});
+import {MemberCardService} from './member-card.service.js';
+const id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',branch='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',cardId='cccccccc-cccc-4ccc-8ccc-cccccccccccc';
+const config={get:()=> 'postgresql://test-only'}as unknown as ConfigService;
+const bearer={hashAuthorization:()=>Buffer.alloc(32)}as unknown as SessionBearerTokenService;
+const req={headers:{authorization:'Bearer test'},gymproSession:{sessionId:id,tenantId:id,membershipId:id,userId:id}}as GymProAuthenticatedRequest;
+const card={id:cardId,tenant_id:id,branch_id:branch,member_id:id,member_number:'GP-1',full_name:'Member Name',status:'active',issued_at:new Date('2026-10-15T00:00:00Z'),revoked_at:null};
+describe('Selected-member card lookup',()=>{
+ beforeEach(()=>{vi.clearAllMocks();db.query.mockReset();db.end.mockResolvedValue(undefined);});
+ async function ready(){const s=new MemberCardService(config,bearer);db.query.mockResolvedValueOnce({rows:[{safe:true}]});await s.onModuleInit();return s;}
+ it('finds an active card and returns only existing public card fields',async()=>{const s=await ready();db.query.mockResolvedValueOnce({rows:[{card_id:cardId}]}).mockResolvedValueOnce({rows:[{...card,actor_snapshot:{private:true}}]});const r=await s.current(req,id,branch,id,{});expect(r.card?.id).toBe(cardId);expect(r.card?.memberId).toBe(id);expect(r.card).not.toHaveProperty('actor_snapshot');expect(db.query.mock.calls[1][1]).toEqual([Buffer.alloc(32),id,branch,id]);});
+ it('returns null when no card exists without issuing one',async()=>{const s=await ready();db.query.mockResolvedValueOnce({rows:[]});expect(await s.current(req,id,branch,id,{})).toEqual({card:null});expect(db.query).toHaveBeenCalledTimes(2);expect(db.query.mock.calls[1][0]).toContain('find_member_card');});
+ it('can return a revoked card without reactivating it',async()=>{const s=await ready();db.query.mockResolvedValueOnce({rows:[{card_id:cardId}]}).mockResolvedValueOnce({rows:[{...card,status:'revoked',revoked_at:new Date('2026-10-15T01:00:00Z')}]});expect((await s.current(req,id,branch,id,{})).card?.status).toBe('revoked');expect(db.query.mock.calls.every(c=>!/^\s*(UPDATE|INSERT)/i.test(c[0]))).toBe(true);});
+ it('rejects a missing verified session',async()=>{const s=await ready();await expect(s.current({}as GymProAuthenticatedRequest,id,branch,id,{})).rejects.toBeInstanceOf(UnauthorizedException);});
+ it('rejects another tenant',async()=>{const s=await ready();await expect(s.current(req,branch,branch,id,{})).rejects.toBeInstanceOf(ForbiddenException);});
+ it.each([[id,'bad',id],[id,branch,'bad']])('rejects invalid route identifiers',async(t,b,m)=>{const s=await ready();await expect(s.current(req,t!,b!,m!,{})).rejects.toBeInstanceOf(BadRequestException);});
+ it.each([null,[],{tenantId:id},{status:'active'},{limit:'1'}])('rejects unexpected query %j',async(q)=>{const s=await ready();await expect(s.current(req,id,branch,id,q)).rejects.toBeInstanceOf(BadRequestException);expect(db.query).toHaveBeenCalledTimes(1);});
+ it('rejects malformed token hash',async()=>{const s=new MemberCardService(config,{hashAuthorization:()=>Buffer.alloc(1)}as unknown as SessionBearerTokenService);db.query.mockResolvedValueOnce({rows:[{safe:true}]});await s.onModuleInit();await expect(s.current(req,id,branch,id,{})).rejects.toBeInstanceOf(UnauthorizedException);});
+ it('blocks lookup before startup verification',async()=>{await expect(new MemberCardService(config,bearer).current(req,id,branch,id,{})).rejects.toBeInstanceOf(ServiceUnavailableException);});
+ it.each([{code:'28000',message:'Invalid or expired session',type:UnauthorizedException},{code:'42501',message:'Card access denied',type:ForbiddenException},{code:'42501',message:'private table details',type:ServiceUnavailableException},{code:'08006',message:'private',type:ServiceUnavailableException}])('maps lookup error $code safely',async(e)=>{const s=await ready();db.query.mockRejectedValueOnce(e);await expect(s.current(req,id,branch,id,{})).rejects.toBeInstanceOf(e.type);});
+ it.each([{rows:[{card_id:'bad'}]},{rows:[{card_id:cardId},{card_id:id}]}])('rejects malformed card lookup rows',async({rows})=>{const s=await ready();db.query.mockResolvedValueOnce({rows});await expect(s.current(req,id,branch,id,{})).rejects.toBeInstanceOf(ServiceUnavailableException);});
+ it('rejects a card belonging to a different member',async()=>{const s=await ready();db.query.mockResolvedValueOnce({rows:[{card_id:cardId}]}).mockResolvedValueOnce({rows:[{...card,member_id:branch}]});await expect(s.current(req,id,branch,id,{})).rejects.toBeInstanceOf(ServiceUnavailableException);});
+ it('revalidates the card scope in the secure read',async()=>{const s=await ready();db.query.mockResolvedValueOnce({rows:[{card_id:cardId}]}).mockRejectedValueOnce({code:'42501',message:'Card access denied'});await expect(s.current(req,id,branch,id,{})).rejects.toBeInstanceOf(ForbiddenException);});
+ it('blocks lookup after shutdown',async()=>{const s=await ready();await s.onModuleDestroy();await expect(s.current(req,id,branch,id,{})).rejects.toBeInstanceOf(ServiceUnavailableException);});
+});

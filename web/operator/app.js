@@ -72,6 +72,16 @@
   }
   bind('member-search-form','submit',()=>searchMembers(false));bind('more-members','click',()=>searchMembers(true));
   $('member-id').addEventListener('input',()=>{$('selected-member').textContent='';});
+  bind('find-member-card','click',async()=>{
+    const member=$('member-id').value.trim();if(!uuid(member))throw new Error('Select a member first.');const generation=state.generation;
+    const result=await api(context()+`/members/${member}/cards/current`);if(generation!==state.generation||$('member-id').value.trim().toLowerCase()!==member.toLowerCase())return;
+    clearQr();$('card-id').value='';$('card-name').textContent='Member card';$('card-number').textContent='Select a card to view details.';$('card-status').textContent='No card selected';$('card-date').textContent='';$('revoke-reason').value='';
+    if(!result||!Object.prototype.hasOwnProperty.call(result,'card'))throw new Error('Invalid card lookup response.');
+    if(result.card===null){notice('No card has been issued to this member in this branch.');return;}
+    const card=result.card;
+    if(!uuid(card.id)||!uuid(card.memberId)||card.memberId.toLowerCase()!==member.toLowerCase())throw new Error('Invalid card lookup response.');
+    $('card-id').value=card.id;await showCard();
+  });
   bind('card-form','submit',showCard);
   bind('revoke-form','submit',async()=>{const id=$('card-id').value.trim(),reason=$('revoke-reason').value.trim();if(!uuid(id))throw new Error('Select a valid card first.');if([...reason].length<2||[...reason].length>500)throw new Error('Use a revocation reason of 2 to 500 characters.');await mutate(context()+`/cards/${id}/revoke`,{reason});clearQr();$('card-status').textContent='revoked';notice('Card revoked.','success');});
   bind('scan-form','submit',scan);bind('start-camera','click',camera);$('stop-camera').addEventListener('click',stopCamera);bind('refresh-current','click',()=>loadCurrent(false));bind('more-current','click',()=>loadCurrent(true));bind('history-form','submit',()=>loadHistory(false));bind('more-history','click',()=>loadHistory(true));
