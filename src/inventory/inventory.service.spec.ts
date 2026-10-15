@@ -1,0 +1,47 @@
+import {beforeEach,describe,expect,it,vi} from 'vitest';
+import {BadRequestException,ForbiddenException,ServiceUnavailableException,UnauthorizedException} from '@nestjs/common';
+import type {ConfigService} from '@nestjs/config';
+import type {GymProAuthenticatedRequest} from '../auth/authenticated-session.guard.js';
+import type {SessionBearerTokenService} from '../auth/session-bearer-token.service.js';
+const mocks=vi.hoisted(()=>({query:vi.fn(),end:vi.fn(),on:vi.fn()}));
+vi.mock('pg',()=>({default:{Pool:class{query=mocks.query;end=mocks.end;on=mocks.on;}}}));
+import {InventoryService} from './inventory.service.js';
+import * as v from './inventory-validation.js';
+const t='11111111-1111-4111-8111-111111111111',b='22222222-2222-4222-8222-222222222222',p='33333333-3333-4333-8333-333333333333',requestId='44444444-4444-4444-8444-444444444444',other='55555555-5555-4555-8555-555555555555';
+const body={sku:'  water  ',productName:'  Drinking water  ',salePrice:'1500',requestId};
+const receipt={id:p,tenantId:t,sku:'WATER',productName:'Drinking water',description:null,unitCode:'piece',salePrice:'1500.00',currencyCode:'MMK',status:'draft',createdAt:'2026-10-15T12:00:00+00:00',updatedAt:'2026-10-15T12:00:00+00:00',requestId};
+const req={headers:{authorization:'Bearer test'},gymproSession:{sessionId:other,tenantId:t,membershipId:other,userId:other}} as unknown as GymProAuthenticatedRequest;
+let service:InventoryService;let hash:ReturnType<typeof vi.fn>;
+async function make(){return new InventoryService({get:()=> 'postgresql://gympro_app@127.0.0.1/gympro_saas'} as unknown as ConfigService,{hashAuthorization:hash} as unknown as SessionBearerTokenService);}
+describe('Gym Pro InventoryService',()=>{
+ beforeEach(async()=>{vi.clearAllMocks();hash=vi.fn(()=>Buffer.alloc(32));service=await make();mocks.query.mockResolvedValue({rows:[{safe:true}]});await service.onModuleInit();mocks.query.mockReset();});
+ it('creates a normalized product and strips private receipt fields',async()=>{mocks.query.mockResolvedValue({rows:[{receipt:{...receipt,actorSnapshot:{secret:true}}}]});const out=await service.create(req,t,body);expect(out.sku).toBe('WATER');expect(out.salePrice).toBe('1500.00');expect(out).not.toHaveProperty('actorSnapshot');expect(mocks.query.mock.calls[0]![1]).toEqual([Buffer.alloc(32),t,'WATER','Drinking water',null,'1500.00',requestId]);});
+ for(const [name,value]of[['tenantId',t],['branchId',b],['status','active'],['currencyCode','USD'],['id',p]] as const)it(`rejects client-controlled ${name}`,async()=>{await expect(service.create(req,t,{...body,[name]:value})).rejects.toBeInstanceOf(BadRequestException);expect(mocks.query).not.toHaveBeenCalled();});
+ for(const value of [null,[],false,'x',{}, {...body,requestId:'bad'}, {...body,productName:'\t\t'}, {...body,salePrice:1500}, {...body,salePrice:'1.001'}, {...body,salePrice:'NaN'}])it(`rejects invalid create input ${JSON.stringify(value)}`,async()=>{await expect(service.create(req,t,value)).rejects.toBeInstanceOf(BadRequestException);});
+ it('rejects an absent verified session',async()=>{await expect(service.create({headers:{}} as GymProAuthenticatedRequest,t,body)).rejects.toBeInstanceOf(UnauthorizedException);});
+ it('rejects another route tenant',async()=>{await expect(service.create(req,other,body)).rejects.toBeInstanceOf(ForbiddenException);});
+ it('rejects a malformed route product',async()=>{await expect(service.stock(req,t,b,'bad',{})).rejects.toBeInstanceOf(BadRequestException);});
+ it('rejects invalid hash length',async()=>{hash.mockReturnValue(Buffer.alloc(31));await expect(service.create(req,t,body)).rejects.toBeInstanceOf(UnauthorizedException);});
+ for(const [code,message,expected]of [['28000','Invalid session',UnauthorizedException],['42501','Permission denied',ForbiddenException],['22023','Private stock details',BadRequestException],['23505','Private duplicate details',BadRequestException],['42501','permission denied for table inventory_products',ServiceUnavailableException],['ECONNREFUSED','Private connection details',ServiceUnavailableException]] as const)it(`maps ${code}/${message} safely`,async()=>{mocks.query.mockRejectedValue({code,message});await expect(service.create(req,t,body)).rejects.toBeInstanceOf(expected);await expect(service.create(req,t,body)).rejects.not.toThrow('Private');});
+ for(const change of [{tenantId:other},{requestId:other},{salePrice:1500},{status:'active'},{updatedAt:'bad'},{createdAt:'2026-02-30T00:00:00Z'},{updatedAt:'2026-10-14T00:00:00Z'}])it(`rejects invalid returned product ${JSON.stringify(change)}`,async()=>{mocks.query.mockResolvedValue({rows:[{receipt:{...receipt,...change}}]});await expect(service.create(req,t,body)).rejects.toBeInstanceOf(ServiceUnavailableException);});
+ it('rejects an empty function result',async()=>{mocks.query.mockResolvedValue({rows:[]});await expect(service.create(req,t,body)).rejects.toBeInstanceOf(ServiceUnavailableException);});
+ it('updates the existing route product and verifies returned values',async()=>{mocks.query.mockResolvedValue({rows:[{receipt:{...receipt,status:'active'}}]});expect((await service.update(req,t,p,{productName:'Drinking water',salePrice:'1500.00',status:'active',requestId})).status).toBe('active');});
+ it('returns an exact stock balance as text',async()=>{mocks.query.mockResolvedValue({rows:[{receipt:{tenantId:t,branchId:b,productId:p,quantity:'9007199254740993',actorSnapshot:'private'}}]});expect(await service.stock(req,t,b,p,{})).toEqual({tenantId:t,branchId:b,productId:p,quantity:'9007199254740993'});});
+ it('rejects a numeric stock balance',async()=>{mocks.query.mockResolvedValue({rows:[{receipt:{tenantId:t,branchId:b,productId:p,quantity:10}}]});await expect(service.stock(req,t,b,p,{})).rejects.toBeInstanceOf(ServiceUnavailableException);});
+ it('rejects unknown stock query parameters',async()=>{await expect(service.stock(req,t,b,p,{tenantId:t})).rejects.toBeInstanceOf(BadRequestException);});
+ it('adjusts stock with normalized reason and immutable request UUID',async()=>{const input={quantityDelta:3,reason:'  Initial stock  ',requestId};mocks.query.mockResolvedValue({rows:[{receipt:{id:other,tenantId:t,branchId:b,productId:p,requestId,quantityDelta:3,balanceAfter:'3',reason:'Initial stock',createdAt:receipt.createdAt}}]});expect((await service.adjust(req,t,b,p,input)).balanceAfter).toBe('3');expect(mocks.query.mock.calls[0]![1]).toEqual([Buffer.alloc(32),t,b,p,3,'Initial stock',requestId]);});
+ for(const value of [0,1.5,'1',2147483648,-2147483649,NaN])it(`rejects invalid stock delta ${value}`,async()=>{await expect(service.adjust(req,t,b,p,{quantityDelta:value,reason:'Test',requestId})).rejects.toBeInstanceOf(BadRequestException);});
+ it('rejects another branch in the stock receipt',async()=>{mocks.query.mockResolvedValue({rows:[{receipt:{tenantId:t,branchId:other,productId:p,quantity:'1'}}]});await expect(service.stock(req,t,b,p,{})).rejects.toBeInstanceOf(ServiceUnavailableException);});
+ it('returns a keyset page without leaking actor fields',async()=>{const row={id:p,tenant_id:t,sku:'WATER',product_name:'Drinking water',description:null,unit_code:'piece',sale_price:'1500.00',currency_code:'MMK',status:'active',updated_at:new Date(receipt.updatedAt),actor_snapshot:'private'};mocks.query.mockResolvedValue({rows:[row,{...row,id:other}]});const result=await service.list(req,t,b,{limit:'1'});expect(result.items).toHaveLength(1);expect(result.nextCursor).toBe(p);expect(result.items[0]).not.toHaveProperty('actor_snapshot');});
+ it('rejects a product page with reversed ordering',async()=>{const row={id:p,tenant_id:t,sku:'WATER',product_name:'Drinking water',description:null,unit_code:'piece',sale_price:'1500.00',currency_code:'MMK',status:'active',updated_at:new Date(receipt.updatedAt)};mocks.query.mockResolvedValue({rows:[{...row,id:other},row]});await expect(service.list(req,t,b,{})).rejects.toBeInstanceOf(ServiceUnavailableException);});
+ it('rejects startup when the restricted account check fails',async()=>{mocks.query.mockResolvedValue({rows:[{safe:false}]});await expect(service.onModuleInit()).rejects.toThrow('restricted');await expect(service.create(req,t,body)).rejects.toBeInstanceOf(ServiceUnavailableException);});
+ it('closes the pool and blocks use after shutdown',async()=>{await service.onModuleDestroy();expect(mocks.end).toHaveBeenCalledOnce();await expect(service.create(req,t,body)).rejects.toBeInstanceOf(ServiceUnavailableException);});
+});
+describe('Inventory exact-value boundaries',()=>{
+ it('accepts the maximum numeric(14,2) price',()=>expect(v.price('999999999999.99')).toBe('999999999999.99'));
+ it('accepts the maximum signed bigint stock balance as text',()=>expect(v.quantity('9223372036854775807')).toBe('9223372036854775807'));
+ it('rejects stock beyond signed bigint range',()=>expect(()=>v.quantity('9223372036854775808')).toThrow());
+ it('counts Unicode reason characters rather than UTF16 units',()=>expect(Array.from(v.text('😀'.repeat(500),2,500))).toHaveLength(500));
+ it('rejects a reason above 500 code points',()=>expect(()=>v.text('😀'.repeat(501),2,500)).toThrow());
+ it('rejects invalid page limits and unknown filters',()=>{for(const q of [{limit:'0'},{limit:'101'},{limit:'1.5'},{limit:['1']},{status:'active'}])expect(()=>v.pageInput(q)).toThrow();});
+});
