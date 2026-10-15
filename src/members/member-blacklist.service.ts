@@ -115,6 +115,8 @@ export class MemberBlacklistService
               'security.change_member_blacklist(bytea,uuid,uuid,text,text,uuid)'
             ),
             'EXECUTE'
+          ) AND has_function_privilege(current_user,
+            to_regprocedure('security.change_branch_member_blacklist(bytea,uuid,uuid,uuid,text,text,uuid)'), 'EXECUTE'
           ) AS can_execute,
           has_table_privilege(
             current_user, 'app.member_blacklist_events', 'SELECT'
@@ -181,6 +183,7 @@ export class MemberBlacklistService
     memberId: string,
     action: MemberBlacklistAction,
     body: unknown,
+    expectedBranchId: string | null = null,
   ): Promise<MemberBlacklistEvent> {
     const session = request.gymproSession;
 
@@ -210,6 +213,10 @@ export class MemberBlacklistService
       throw new ServiceUnavailableException('Member blacklist unavailable');
     }
 
+    if (expectedBranchId !== null && !this.isUuid(expectedBranchId)) {
+      throw new BadRequestException('Invalid branch identifier');
+    }
+
     const input = this.validateBody(body);
 
     const tokenHash = this.bearerTokenService.hashAuthorization(
@@ -236,23 +243,11 @@ export class MemberBlacklistService
             resulting_status,
             recorded_at,
             created_at
-          FROM security.change_member_blacklist(
-            $1::bytea,
-            $2::uuid,
-            $3::uuid,
-            $4::text,
-            $5::text,
-            $6::uuid
-          )
+          FROM ${expectedBranchId === null ? `security.change_member_blacklist($1::bytea, $2::uuid, $3::uuid, $4::text, $5::text, $6::uuid)` : `security.change_branch_member_blacklist($1::bytea, $2::uuid, $3::uuid, $4::uuid, $5::text, $6::text, $7::uuid)`}
         `,
-        [
-          tokenHash,
-          tenantId,
-          memberId,
-          action,
-          input.reason,
-          input.requestId,
-        ],
+        expectedBranchId === null
+          ? [tokenHash, tenantId, memberId, action, input.reason, input.requestId]
+          : [tokenHash, tenantId, expectedBranchId, memberId, action, input.reason, input.requestId],
       );
     } catch (error: unknown) {
       this.throwDatabaseError(error);
@@ -387,6 +382,7 @@ export class MemberBlacklistService
       (
         databaseError.message === 'Tenant access denied' ||
         databaseError.message === 'Member access denied' ||
+        databaseError.message === 'Branch access denied' ||
         databaseError.message === 'Member blacklist permission denied'
       )
     ) {

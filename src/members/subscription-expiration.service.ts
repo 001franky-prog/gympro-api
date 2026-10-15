@@ -107,6 +107,8 @@ export class SubscriptionExpirationService
               'security.expire_member_subscription(bytea,uuid,uuid)'
             ),
             'EXECUTE'
+          ) AND has_function_privilege(current_user,
+            to_regprocedure('security.expire_branch_member_subscription(bytea,uuid,uuid,uuid)'), 'EXECUTE'
           ) AS can_execute,
           has_table_privilege(
             current_user, 'app.subscription_expirations', 'SELECT'
@@ -174,6 +176,7 @@ export class SubscriptionExpirationService
     tenantId: string,
     subscriptionId: string,
     body: unknown,
+    expectedBranchId: string | null = null,
   ): Promise<SubscriptionExpiration> {
     const session = request.gymproSession;
 
@@ -203,6 +206,10 @@ export class SubscriptionExpirationService
       );
     }
 
+    if (expectedBranchId !== null && !this.isUuid(expectedBranchId)) {
+      throw new BadRequestException('Invalid branch identifier');
+    }
+
     this.validateBody(body);
 
     const tokenHash = this.bearerTokenService.hashAuthorization(
@@ -227,17 +234,11 @@ export class SubscriptionExpirationService
             processed_on::text AS processed_on,
             expired_at,
             created_at
-          FROM security.expire_member_subscription(
-            $1::bytea,
-            $2::uuid,
-            $3::uuid
-          )
+          FROM ${expectedBranchId === null ? `security.expire_member_subscription($1::bytea, $2::uuid, $3::uuid)` : `security.expire_branch_member_subscription($1::bytea, $2::uuid, $3::uuid, $4::uuid)`}
         `,
-        [
-          tokenHash,
-          tenantId,
-          subscriptionId,
-        ],
+        expectedBranchId === null
+          ? [tokenHash, tenantId, subscriptionId]
+          : [tokenHash, tenantId, expectedBranchId, subscriptionId],
       );
     } catch (error: unknown) {
       this.throwDatabaseError(error);
@@ -344,6 +345,7 @@ export class SubscriptionExpirationService
         databaseError.message === 'Tenant access denied' ||
         databaseError.message === 'Subscription access denied' ||
         databaseError.message === 'Member access denied' ||
+        databaseError.message === 'Branch access denied' ||
         databaseError.message ===
           'Membership management permission denied'
       )

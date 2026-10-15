@@ -69,12 +69,12 @@ export class MembershipDiscountService
             current_user,
             'security.activate_discounted_membership(bytea,uuid,uuid,uuid,uuid,uuid,uuid)',
             'EXECUTE'
-          ) AS can_activate,
+          ) AND has_function_privilege(current_user, 'security.activate_branch_discounted_membership(bytea,uuid,uuid,uuid,uuid,uuid,uuid,uuid)', 'EXECUTE') AS can_activate,
           has_function_privilege(
             current_user,
             'security.renew_discounted_membership(bytea,uuid,uuid,uuid,uuid,uuid)',
             'EXECUTE'
-          ) AS can_renew,
+          ) AND has_function_privilege(current_user, 'security.renew_branch_discounted_membership(bytea,uuid,uuid,uuid,uuid,uuid,uuid)', 'EXECUTE') AS can_renew,
           has_function_privilege(
             current_user,
             'security.calculate_membership_discount(bytea,uuid,uuid,uuid,numeric,uuid)',
@@ -137,8 +137,9 @@ export class MembershipDiscountService
     tenantId: string,
     memberId: string,
     body: unknown,
+    expectedBranchId: string | null = null,
   ): Promise<MembershipDiscountReceipt> {
-    return this.purchase(request, tenantId, memberId, body, 'activation');
+    return this.purchase(request, tenantId, memberId, body, 'activation', expectedBranchId);
   }
 
   async renew(
@@ -146,9 +147,10 @@ export class MembershipDiscountService
     tenantId: string,
     subscriptionId: string,
     body: unknown,
+    expectedBranchId: string | null = null,
   ): Promise<MembershipDiscountReceipt> {
     return this.purchase(
-      request, tenantId, subscriptionId, body, 'renewal',
+      request, tenantId, subscriptionId, body, 'renewal', expectedBranchId,
     );
   }
 
@@ -158,10 +160,12 @@ export class MembershipDiscountService
     targetId: string,
     body: unknown,
     kind: 'activation' | 'renewal',
+    expectedBranchId: string | null = null,
   ): Promise<MembershipDiscountReceipt> {
     const tokenHash = this.authorize(request, tenantId);
 
     if (!this.validUuid(targetId)) this.badRequest();
+    if (expectedBranchId !== null && !this.validUuid(expectedBranchId)) this.badRequest();
 
     if (
       body === null ||
@@ -196,17 +200,11 @@ export class MembershipDiscountService
     const sql = kind === 'activation'
       ? `
           SELECT ${COLUMNS}
-          FROM security.activate_discounted_membership(
-            $1::bytea, $2::uuid, $3::uuid, $4::uuid,
-            $5::uuid, $6::uuid, $7::uuid
-          )
+          FROM ${expectedBranchId === null ? `security.activate_discounted_membership($1::bytea, $2::uuid, $3::uuid, $4::uuid, $5::uuid, $6::uuid, $7::uuid)` : `security.activate_branch_discounted_membership($1::bytea, $2::uuid, $3::uuid, $4::uuid, $5::uuid, $6::uuid, $7::uuid, $8::uuid)`}
         `
       : `
           SELECT ${COLUMNS}
-          FROM security.renew_discounted_membership(
-            $1::bytea, $2::uuid, $3::uuid,
-            $4::uuid, $5::uuid, $6::uuid
-          )
+          FROM ${expectedBranchId === null ? `security.renew_discounted_membership($1::bytea, $2::uuid, $3::uuid, $4::uuid, $5::uuid, $6::uuid)` : `security.renew_branch_discounted_membership($1::bytea, $2::uuid, $3::uuid, $4::uuid, $5::uuid, $6::uuid, $7::uuid)`}
         `;
 
     const values = kind === 'activation'
@@ -218,6 +216,8 @@ export class MembershipDiscountService
           tokenHash, tenantId, targetId,
           priceId, promotionId, requestId,
         ];
+
+    if (expectedBranchId !== null) values.splice(2, 0, expectedBranchId);
 
     try {
       const result = await this.pool.query(sql, values);
@@ -376,6 +376,7 @@ export class MembershipDiscountService
       [
         'Tenant access denied',
         'Member access denied',
+        'Branch access denied',
         'Subscription access denied',
         'Membership management permission denied',
         'Membership discount permission denied',

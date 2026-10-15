@@ -107,6 +107,12 @@ export class SubscriptionSuspensionService
               'security.suspend_member_subscription(bytea,uuid,uuid,text,uuid)'
             ),
             'EXECUTE'
+          ) AND has_function_privilege(
+            current_user,
+            to_regprocedure(
+              'security.suspend_branch_member_subscription(bytea,uuid,uuid,uuid,text,uuid)'
+            ),
+            'EXECUTE'
           ) AS can_execute,
           has_table_privilege(
             current_user, 'app.subscription_suspensions', 'SELECT'
@@ -175,6 +181,26 @@ export class SubscriptionSuspensionService
     subscriptionId: string,
     body: unknown,
   ): Promise<SubscriptionSuspension> {
+    return this.suspendScoped(request, tenantId, null, subscriptionId, body);
+  }
+
+  async suspendBranch(
+    request: GymProAuthenticatedRequest,
+    tenantId: string,
+    branchId: string,
+    subscriptionId: string,
+    body: unknown,
+  ): Promise<SubscriptionSuspension> {
+    return this.suspendScoped(request, tenantId, branchId, subscriptionId, body);
+  }
+
+  private async suspendScoped(
+    request: GymProAuthenticatedRequest,
+    tenantId: string,
+    branchId: string | null,
+    subscriptionId: string,
+    body: unknown,
+  ): Promise<SubscriptionSuspension> {
     const session = request.gymproSession;
 
     if (
@@ -203,6 +229,10 @@ export class SubscriptionSuspensionService
       );
     }
 
+    if (branchId !== null && !this.isUuid(branchId)) {
+      throw new BadRequestException('Invalid branch identifier');
+    }
+
     const input = this.validateBody(body);
 
     const tokenHash = this.bearerTokenService.hashAuthorization(
@@ -226,21 +256,18 @@ export class SubscriptionSuspensionService
             reason,
             suspended_at,
             created_at
-          FROM security.suspend_member_subscription(
-            $1::bytea,
-            $2::uuid,
-            $3::uuid,
-            $4::text,
-            $5::uuid
-          )
+          FROM ${branchId === null
+            ? `security.suspend_member_subscription(
+                $1::bytea, $2::uuid, $3::uuid, $4::text, $5::uuid
+              )`
+            : `security.suspend_branch_member_subscription(
+                $1::bytea, $2::uuid, $3::uuid,
+                $4::uuid, $5::text, $6::uuid
+              )`}
         `,
-        [
-          tokenHash,
-          tenantId,
-          subscriptionId,
-          input.reason,
-          input.requestId,
-        ],
+        branchId === null
+          ? [tokenHash, tenantId, subscriptionId, input.reason, input.requestId]
+          : [tokenHash, tenantId, branchId, subscriptionId, input.reason, input.requestId],
       );
     } catch (error: unknown) {
       this.throwDatabaseError(error);
@@ -357,6 +384,7 @@ export class SubscriptionSuspensionService
         databaseError.message === 'Tenant access denied' ||
         databaseError.message === 'Subscription access denied' ||
         databaseError.message === 'Member access denied' ||
+        databaseError.message === 'Branch access denied' ||
         databaseError.message ===
           'Membership management permission denied'
       )

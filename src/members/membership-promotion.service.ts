@@ -74,7 +74,7 @@ export class MembershipPromotionService
             current_user,
             'security.set_membership_promotion_status(bytea,uuid,uuid,text)',
             'EXECUTE'
-          ) AS can_set_status,
+          ) AND has_function_privilege(current_user, 'security.set_branch_membership_promotion_status(bytea,uuid,uuid,uuid,text)', 'EXECUTE') AS can_set_status,
           has_function_privilege(
             current_user,
             'security.calculate_membership_discount(bytea,uuid,uuid,uuid,numeric,uuid)',
@@ -121,6 +121,7 @@ export class MembershipPromotionService
     request: GymProAuthenticatedRequest,
     tenantId: string,
     body: unknown,
+    expectedBranchId: string | null = null,
   ): Promise<MembershipPromotion> {
     const tokenHash = this.authorize(request, tenantId);
     const input = this.object(body);
@@ -162,7 +163,8 @@ export class MembershipPromotionService
     }
 
     const planId = this.optionalUuid(input.planId);
-    const branchId = this.optionalUuid(input.branchId);
+    if (expectedBranchId !== null && (!this.validUuid(expectedBranchId) || 'branchId' in input)) this.badRequest();
+    const branchId = expectedBranchId ?? this.optionalUuid(input.branchId);
 
     const kind = input.discountKind;
     if (kind !== 'percentage' && kind !== 'fixed_amount') {
@@ -246,10 +248,12 @@ export class MembershipPromotionService
     promotionId: string,
     status: 'active' | 'inactive',
     body: unknown,
+    expectedBranchId: string | null = null,
   ): Promise<MembershipPromotion> {
     const tokenHash = this.authorize(request, tenantId);
 
     if (!UUID.test(promotionId)) this.badRequest();
+    if (expectedBranchId !== null && !this.validUuid(expectedBranchId)) this.badRequest();
     if (status !== 'active' && status !== 'inactive') this.badRequest();
 
     if (body !== undefined) {
@@ -261,11 +265,13 @@ export class MembershipPromotionService
       const result = await this.pool.query(
         `
           SELECT ${RETURN_COLUMNS}
-          FROM security.set_membership_promotion_status(
-            $1::bytea, $2::uuid, $3::uuid, $4::text
-          )
+          FROM ${expectedBranchId === null
+            ? `security.set_membership_promotion_status($1::bytea,$2::uuid,$3::uuid,$4::text)`
+            : `security.set_branch_membership_promotion_status($1::bytea,$2::uuid,$3::uuid,$4::uuid,$5::text)`}
         `,
-        [tokenHash, tenantId, promotionId, status],
+        expectedBranchId === null
+          ? [tokenHash, tenantId, promotionId, status]
+          : [tokenHash, tenantId, expectedBranchId, promotionId, status],
       );
 
       if (result.rows.length !== 1) this.unavailable();
@@ -273,7 +279,8 @@ export class MembershipPromotionService
 
       if (
         !this.sameUuid(promotion.id, promotionId) ||
-        promotion.status !== status
+        promotion.status !== status ||
+        (expectedBranchId !== null && !this.sameNullableUuid(promotion.branchId, expectedBranchId))
       ) {
         this.unavailable();
       }
@@ -486,6 +493,7 @@ export class MembershipPromotionService
       failure?.code === '42501' &&
       [
         'Tenant access denied',
+        'Branch access denied',
         'Promotion management permission denied',
       ].includes(failure.message ?? '')
     ) {

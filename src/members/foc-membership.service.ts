@@ -109,6 +109,8 @@ export class FocMembershipService
               'security.grant_foc_membership(bytea,uuid,uuid,uuid,uuid,text,uuid)'
             ),
             'EXECUTE'
+          ) AND has_function_privilege(current_user,
+            to_regprocedure('security.grant_branch_foc_membership(bytea,uuid,uuid,uuid,uuid,uuid,text,uuid)'), 'EXECUTE'
           ) AS can_execute,
           has_table_privilege(
             current_user, 'app.subscription_foc_grants', 'SELECT'
@@ -174,6 +176,7 @@ export class FocMembershipService
     tenantId: string,
     memberId: string,
     body: unknown,
+    expectedBranchId: string | null = null,
   ): Promise<FocMembershipGrant> {
     const session = request.gymproSession;
 
@@ -197,6 +200,10 @@ export class FocMembershipService
 
     if (!this.runtimeVerified) {
       throw new ServiceUnavailableException('FOC membership unavailable');
+    }
+
+    if (expectedBranchId !== null && !this.isUuid(expectedBranchId)) {
+      throw new BadRequestException('Invalid branch identifier');
     }
 
     const input = this.validateBody(body);
@@ -224,25 +231,11 @@ export class FocMembershipService
             currency_code,
             granted_at,
             created_at
-          FROM security.grant_foc_membership(
-            $1::bytea,
-            $2::uuid,
-            $3::uuid,
-            $4::uuid,
-            $5::uuid,
-            $6::text,
-            $7::uuid
-          )
+          FROM ${expectedBranchId === null ? `security.grant_foc_membership($1::bytea, $2::uuid, $3::uuid, $4::uuid, $5::uuid, $6::text, $7::uuid)` : `security.grant_branch_foc_membership($1::bytea, $2::uuid, $3::uuid, $4::uuid, $5::uuid, $6::uuid, $7::text, $8::uuid)`}
         `,
-        [
-          tokenHash,
-          tenantId,
-          memberId,
-          input.planId,
-          input.planPriceId,
-          input.reason,
-          input.requestId,
-        ],
+        expectedBranchId === null
+          ? [tokenHash, tenantId, memberId, input.planId, input.planPriceId, input.reason, input.requestId]
+          : [tokenHash, tenantId, expectedBranchId, memberId, input.planId, input.planPriceId, input.reason, input.requestId],
       );
     } catch (error: unknown) {
       this.throwDatabaseError(error);
@@ -368,6 +361,7 @@ export class FocMembershipService
       (
         databaseError.message === 'Tenant access denied' ||
         databaseError.message === 'Member access denied' ||
+        databaseError.message === 'Branch access denied' ||
         databaseError.message === 'Complimentary membership permission denied'
       )
     ) {

@@ -5,31 +5,13 @@ import {
   ServiceUnavailableException,
   UnauthorizedException,
 } from '@nestjs/common';
-
-import type {
-  OnModuleDestroy,
-  OnModuleInit,
-} from '@nestjs/common';
-
+import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import pg from 'pg';
-
-import {
-  SessionBearerTokenService,
-} from '../auth/session-bearer-token.service.js';
-
-import type {
-  GymProAuthenticatedRequest,
-} from '../auth/authenticated-session.guard.js';
-
-import {
-  SUBSCRIPTION_DURATION_UNITS,
-} from './member-subscription.js';
-
-import type {
-  SubscriptionDurationUnit,
-} from './member-subscription.js';
-
+import { SessionBearerTokenService } from '../auth/session-bearer-token.service.js';
+import type { GymProAuthenticatedRequest } from '../auth/authenticated-session.guard.js';
+import { SUBSCRIPTION_DURATION_UNITS } from './member-subscription.js';
+import type { SubscriptionDurationUnit } from './member-subscription.js';
 import type {
   RenewMemberSubscriptionInput,
   SubscriptionRenewal,
@@ -84,10 +66,7 @@ export class SubscriptionRenewalService
     private readonly bearerTokenService: SessionBearerTokenService,
   ) {
     const databaseUrl = config.get<string>('DATABASE_URL');
-
-    if (!databaseUrl) {
-      throw new Error('DATABASE_URL is required');
-    }
+    if (!databaseUrl) throw new Error('DATABASE_URL is required');
 
     this.pool = new pg.Pool({
       connectionString: databaseUrl,
@@ -103,7 +82,6 @@ export class SubscriptionRenewalService
 
   async onModuleInit(): Promise<void> {
     this.runtimeVerified = false;
-
     let result: pg.QueryResult<RuntimeIdentity>;
 
     try {
@@ -116,12 +94,21 @@ export class SubscriptionRenewalService
           has_schema_privilege(
             current_user, 'security', 'USAGE'
           ) AS schema_usage,
-          has_function_privilege(
-            current_user,
-            to_regprocedure(
-              'security.renew_member_subscription(bytea,uuid,uuid,uuid,uuid)'
-            ),
-            'EXECUTE'
+          (
+            has_function_privilege(
+              current_user,
+              to_regprocedure(
+                'security.renew_member_subscription(bytea,uuid,uuid,uuid,uuid)'
+              ),
+              'EXECUTE'
+            )
+            AND has_function_privilege(
+              current_user,
+              to_regprocedure(
+                'security.renew_branch_member_subscription(bytea,uuid,uuid,uuid,uuid,uuid)'
+              ),
+              'EXECUTE'
+            )
           ) AS can_execute,
           has_table_privilege(
             current_user, 'app.subscription_renewals', 'SELECT'
@@ -147,7 +134,7 @@ export class SubscriptionRenewalService
           has_table_privilege(
             current_user, 'app.member_subscriptions', 'DELETE'
           ) AS subscription_delete
-        FROM pg_roles AS r
+        FROM pg_roles r
         WHERE r.rolname = current_user
       `);
     } catch {
@@ -157,7 +144,6 @@ export class SubscriptionRenewalService
     }
 
     const row = result.rows[0];
-
     if (
       result.rows.length !== 1 ||
       !row ||
@@ -190,6 +176,30 @@ export class SubscriptionRenewalService
     subscriptionId: string,
     body: unknown,
   ): Promise<SubscriptionRenewal> {
+    return this.renewScoped(
+      request, tenantId, null, subscriptionId, body,
+    );
+  }
+
+  async renewBranch(
+    request: GymProAuthenticatedRequest,
+    tenantId: string,
+    branchId: string,
+    subscriptionId: string,
+    body: unknown,
+  ): Promise<SubscriptionRenewal> {
+    return this.renewScoped(
+      request, tenantId, branchId, subscriptionId, body,
+    );
+  }
+
+  private async renewScoped(
+    request: GymProAuthenticatedRequest,
+    tenantId: string,
+    branchId: string | null,
+    subscriptionId: string,
+    body: unknown,
+  ): Promise<SubscriptionRenewal> {
     const session = request.gymproSession;
 
     if (
@@ -212,6 +222,10 @@ export class SubscriptionRenewalService
       throw new ForbiddenException('Tenant access denied');
     }
 
+    if (branchId !== null && !this.isUuid(branchId)) {
+      throw new BadRequestException('Invalid branch identifier');
+    }
+
     if (!this.runtimeVerified) {
       throw new ServiceUnavailableException(
         'Subscription renewal unavailable',
@@ -219,7 +233,6 @@ export class SubscriptionRenewalService
     }
 
     const input = this.validateBody(body);
-
     const tokenHash = this.bearerTokenService.hashAuthorization(
       request.headers?.authorization,
     );
@@ -228,48 +241,47 @@ export class SubscriptionRenewalService
       throw new UnauthorizedException('Invalid or expired session');
     }
 
-    let result: pg.QueryResult<RenewalRow>;
+    const functionCall = branchId === null
+      ? `security.renew_member_subscription(
+          $1::bytea, $2::uuid, $3::uuid, $4::uuid, $5::uuid
+        )`
+      : `security.renew_branch_member_subscription(
+          $1::bytea, $2::uuid, $3::uuid,
+          $4::uuid, $5::uuid, $6::uuid
+        )`;
 
+    const values = branchId === null
+      ? [
+          tokenHash, tenantId, subscriptionId,
+          input.planPriceId, input.requestId,
+        ]
+      : [
+          tokenHash, tenantId, branchId, subscriptionId,
+          input.planPriceId, input.requestId,
+        ];
+
+    let result: pg.QueryResult<RenewalRow>;
     try {
       result = await this.pool.query<RenewalRow>(
         `
           SELECT
-            id,
-            tenant_id,
-            subscription_id,
-            request_id,
-            plan_id,
-            plan_price_id,
+            id, tenant_id, subscription_id, request_id,
+            plan_id, plan_price_id,
             previous_ends_on::text AS previous_ends_on,
             renewal_starts_on::text AS renewal_starts_on,
             renewal_ends_on::text AS renewal_ends_on,
-            duration_value,
-            duration_unit,
+            duration_value, duration_unit,
             agreed_price_amount::text AS agreed_price_amount,
-            currency_code,
-            created_at
-          FROM security.renew_member_subscription(
-            $1::bytea,
-            $2::uuid,
-            $3::uuid,
-            $4::uuid,
-            $5::uuid
-          )
+            currency_code, created_at
+          FROM ${functionCall}
         `,
-        [
-          tokenHash,
-          tenantId,
-          subscriptionId,
-          input.planPriceId,
-          input.requestId,
-        ],
+        values,
       );
     } catch (error: unknown) {
       this.throwDatabaseError(error);
     }
 
     const row = result.rows[0];
-
     if (
       result.rows.length !== 1 ||
       !row ||
@@ -290,9 +302,7 @@ export class SubscriptionRenewalService
         (unit) => unit === row.duration_unit,
       ) ||
       typeof row.agreed_price_amount !== 'string' ||
-      !/^(0|[1-9][0-9]{0,11})\.[0-9]{2}$/.test(
-        row.agreed_price_amount,
-      ) ||
+      !/^(0|[1-9][0-9]{0,11})\.[0-9]{2}$/.test(row.agreed_price_amount) ||
       row.currency_code !== 'MMK' ||
       !this.isValidDate(row.created_at)
     ) {
@@ -327,11 +337,7 @@ export class SubscriptionRenewalService
   private validateBody(
     body: unknown,
   ): RenewMemberSubscriptionInput {
-    if (
-      typeof body !== 'object' ||
-      body === null ||
-      Array.isArray(body)
-    ) {
+    if (typeof body !== 'object' || body === null || Array.isArray(body)) {
       throw new BadRequestException('Invalid renewal request');
     }
 
@@ -376,7 +382,6 @@ export class SubscriptionRenewalService
     }
 
     const date = new Date(`${value}T00:00:00.000Z`);
-
     return Number.isFinite(date.getTime()) &&
       date.toISOString().slice(0, 10) === value;
   }
@@ -396,13 +401,13 @@ export class SubscriptionRenewalService
 
     if (
       databaseError.code === '42501' &&
-      (
-        databaseError.message === 'Tenant access denied' ||
-        databaseError.message === 'Subscription access denied' ||
-        databaseError.message === 'Member access denied' ||
-        databaseError.message ===
-          'Membership management permission denied'
-      )
+      [
+        'Tenant access denied',
+        'Subscription access denied',
+        'Member access denied',
+        'Branch access denied',
+        'Membership management permission denied',
+      ].includes(String(databaseError.message))
     ) {
       throw new ForbiddenException('Membership renewal access denied');
     }

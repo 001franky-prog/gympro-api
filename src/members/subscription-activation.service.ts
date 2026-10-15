@@ -5,27 +5,12 @@ import {
   ServiceUnavailableException,
   UnauthorizedException,
 } from '@nestjs/common';
-
-import type {
-  OnModuleDestroy,
-  OnModuleInit,
-} from '@nestjs/common';
-
+import type { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import pg from 'pg';
-
-import {
-  SessionBearerTokenService,
-} from '../auth/session-bearer-token.service.js';
-
-import type {
-  GymProAuthenticatedRequest,
-} from '../auth/authenticated-session.guard.js';
-
-import {
-  SUBSCRIPTION_DURATION_UNITS,
-} from './member-subscription.js';
-
+import { SessionBearerTokenService } from '../auth/session-bearer-token.service.js';
+import type { GymProAuthenticatedRequest } from '../auth/authenticated-session.guard.js';
+import { SUBSCRIPTION_DURATION_UNITS } from './member-subscription.js';
 import type {
   ActivateMemberSubscriptionInput,
   MemberSubscription,
@@ -80,10 +65,7 @@ export class SubscriptionActivationService
     private readonly bearerTokenService: SessionBearerTokenService,
   ) {
     const databaseUrl = config.get<string>('DATABASE_URL');
-
-    if (!databaseUrl) {
-      throw new Error('DATABASE_URL is required');
-    }
+    if (!databaseUrl) throw new Error('DATABASE_URL is required');
 
     this.pool = new pg.Pool({
       connectionString: databaseUrl,
@@ -99,7 +81,6 @@ export class SubscriptionActivationService
 
   async onModuleInit(): Promise<void> {
     this.runtimeVerified = false;
-
     let result: pg.QueryResult<RuntimeIdentity>;
 
     try {
@@ -112,12 +93,21 @@ export class SubscriptionActivationService
           has_schema_privilege(
             current_user, 'security', 'USAGE'
           ) AS schema_usage,
-          has_function_privilege(
-            current_user,
-            to_regprocedure(
-              'security.activate_member_subscription(bytea,uuid,uuid,uuid,uuid)'
-            ),
-            'EXECUTE'
+          (
+            has_function_privilege(
+              current_user,
+              to_regprocedure(
+                'security.activate_member_subscription(bytea,uuid,uuid,uuid,uuid)'
+              ),
+              'EXECUTE'
+            )
+            AND has_function_privilege(
+              current_user,
+              to_regprocedure(
+                'security.activate_branch_member_subscription(bytea,uuid,uuid,uuid,uuid,uuid)'
+              ),
+              'EXECUTE'
+            )
           ) AS can_execute,
           has_table_privilege(
             current_user, 'app.member_subscriptions', 'SELECT'
@@ -131,7 +121,7 @@ export class SubscriptionActivationService
           has_table_privilege(
             current_user, 'app.member_subscriptions', 'DELETE'
           ) AS can_delete
-        FROM pg_roles AS r
+        FROM pg_roles r
         WHERE r.rolname = current_user
       `);
     } catch {
@@ -141,7 +131,6 @@ export class SubscriptionActivationService
     }
 
     const row = result.rows[0];
-
     if (
       result.rows.length !== 1 ||
       !row ||
@@ -170,6 +159,28 @@ export class SubscriptionActivationService
     memberId: string,
     body: unknown,
   ): Promise<MemberSubscription> {
+    return this.activateScoped(request, tenantId, null, memberId, body);
+  }
+
+  async activateBranch(
+    request: GymProAuthenticatedRequest,
+    tenantId: string,
+    branchId: string,
+    memberId: string,
+    body: unknown,
+  ): Promise<MemberSubscription> {
+    return this.activateScoped(
+      request, tenantId, branchId, memberId, body,
+    );
+  }
+
+  private async activateScoped(
+    request: GymProAuthenticatedRequest,
+    tenantId: string,
+    branchId: string | null,
+    memberId: string,
+    body: unknown,
+  ): Promise<MemberSubscription> {
     const session = request.gymproSession;
 
     if (
@@ -190,6 +201,10 @@ export class SubscriptionActivationService
       throw new ForbiddenException('Tenant access denied');
     }
 
+    if (branchId !== null && !this.isUuid(branchId)) {
+      throw new BadRequestException('Invalid branch identifier');
+    }
+
     if (!this.runtimeVerified) {
       throw new ServiceUnavailableException(
         'Subscription activation unavailable',
@@ -197,7 +212,6 @@ export class SubscriptionActivationService
     }
 
     const input = this.validateBody(body);
-
     const tokenHash = this.bearerTokenService.hashAuthorization(
       request.headers?.authorization,
     );
@@ -206,44 +220,38 @@ export class SubscriptionActivationService
       throw new UnauthorizedException('Invalid or expired session');
     }
 
-    let result: pg.QueryResult<SubscriptionRow>;
+    const functionCall = branchId === null
+      ? `security.activate_member_subscription(
+          $1::bytea, $2::uuid, $3::uuid, $4::uuid, $5::uuid
+        )`
+      : `security.activate_branch_member_subscription(
+          $1::bytea, $2::uuid, $3::uuid,
+          $4::uuid, $5::uuid, $6::uuid
+        )`;
 
+    const values = branchId === null
+      ? [tokenHash, tenantId, memberId, input.planId, input.planPriceId]
+      : [
+          tokenHash, tenantId, branchId, memberId,
+          input.planId, input.planPriceId,
+        ];
+
+    let result: pg.QueryResult<SubscriptionRow>;
     try {
       result = await this.pool.query<SubscriptionRow>(
         `
           SELECT
-            id,
-            tenant_id,
-            member_id,
-            branch_id,
-            plan_id,
-            plan_price_id,
-            duration_value,
-            duration_unit,
+            id, tenant_id, member_id, branch_id,
+            plan_id, plan_price_id,
+            duration_value, duration_unit,
             agreed_price_amount::text AS agreed_price_amount,
-            currency_code,
-            status,
+            currency_code, status,
             starts_on::text AS starts_on,
             ends_on::text AS ends_on,
-            activated_at,
-            suspended_at,
-            created_at,
-            updated_at
-          FROM security.activate_member_subscription(
-            $1::bytea,
-            $2::uuid,
-            $3::uuid,
-            $4::uuid,
-            $5::uuid
-          )
+            activated_at, suspended_at, created_at, updated_at
+          FROM ${functionCall}
         `,
-        [
-          tokenHash,
-          tenantId,
-          memberId,
-          input.planId,
-          input.planPriceId,
-        ],
+        values,
       );
     } catch (error: unknown) {
       this.throwDatabaseError(error);
@@ -260,15 +268,14 @@ export class SubscriptionActivationService
       !this.sameUuid(row.plan_id, input.planId) ||
       !this.sameUuid(row.plan_price_id, input.planPriceId) ||
       (row.branch_id !== null && !this.isUuid(row.branch_id)) ||
+      (branchId !== null && !this.sameUuid(row.branch_id, branchId)) ||
       !Number.isInteger(row.duration_value) ||
       row.duration_value <= 0 ||
       !SUBSCRIPTION_DURATION_UNITS.some(
         (unit) => unit === row.duration_unit,
       ) ||
       typeof row.agreed_price_amount !== 'string' ||
-      !/^(0|[1-9][0-9]{0,11})\.[0-9]{2}$/.test(
-        row.agreed_price_amount,
-      ) ||
+      !/^(0|[1-9][0-9]{0,11})\.[0-9]{2}$/.test(row.agreed_price_amount) ||
       row.currency_code !== 'MMK' ||
       row.status !== 'active' ||
       !this.isCalendarDate(row.starts_on) ||
@@ -313,11 +320,7 @@ export class SubscriptionActivationService
   private validateBody(
     body: unknown,
   ): ActivateMemberSubscriptionInput {
-    if (
-      typeof body !== 'object' ||
-      body === null ||
-      Array.isArray(body)
-    ) {
+    if (typeof body !== 'object' || body === null || Array.isArray(body)) {
       throw new BadRequestException('Invalid activation request');
     }
 
@@ -362,7 +365,6 @@ export class SubscriptionActivationService
     }
 
     const date = new Date(`${value}T00:00:00.000Z`);
-
     return Number.isFinite(date.getTime()) &&
       date.toISOString().slice(0, 10) === value;
   }
@@ -382,12 +384,12 @@ export class SubscriptionActivationService
 
     if (
       databaseError.code === '42501' &&
-      (
-        databaseError.message === 'Tenant access denied' ||
-        databaseError.message === 'Member access denied' ||
-        databaseError.message ===
-          'Membership management permission denied'
-      )
+      [
+        'Tenant access denied',
+        'Member access denied',
+        'Branch access denied',
+        'Membership management permission denied',
+      ].includes(String(databaseError.message))
     ) {
       throw new ForbiddenException('Membership activation access denied');
     }
