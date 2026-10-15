@@ -1,0 +1,48 @@
+import 'reflect-metadata';
+import {beforeEach,describe,expect,it,vi} from 'vitest';
+import {BadRequestException,ForbiddenException,ServiceUnavailableException,UnauthorizedException} from '@nestjs/common';
+import {GUARDS_METADATA} from '@nestjs/common/constants';
+import type {ConfigService} from '@nestjs/config';
+import type {GymProAuthenticatedRequest} from '../auth/authenticated-session.guard.js';
+import type {SessionBearerTokenService} from '../auth/session-bearer-token.service.js';
+import {AuthenticatedSessionGuard} from '../auth/authenticated-session.guard.js';
+import {TenantScopeGuard} from '../auth/tenant-scope.guard.js';
+import {PermissionGuard} from '../auth/permission.guard.js';
+const mocks=vi.hoisted(()=>({query:vi.fn(),end:vi.fn(),on:vi.fn()}));
+vi.mock('pg',()=>({default:{Pool:class{query=mocks.query;end=mocks.end;on=mocks.on;}}}));
+import {PosHistoryService} from './pos-history.service.js';
+import {PosHistoryController} from './pos-history.controller.js';
+import {historyInput,historyPage} from './pos-history-validation.js';
+const t='11111111-1111-4111-8111-111111111111',b='22222222-2222-4222-8222-222222222222',p='33333333-3333-4333-8333-333333333333',requestId='44444444-4444-4444-8444-444444444444',other='55555555-5555-4555-8555-555555555555';
+
+
+const row={id:p,tenantId:t,branchId:b,requestId,createdAt:'2026-10-15T12:00:00Z',currencyCode:'MMK',totalAmount:'3000.00',reversedAmount:'1000.00',status:'partially_refunded',quantitySold:'3',quantityReturned:'1'};
+const result={tenantId:t,branchId:b,from:'2026-10-15',through:'2026-10-15',items:[row],nextCursor:null};
+const query={from:'2026-10-15',through:'2026-10-15'};
+const req={headers:{authorization:'Bearer test'},gymproSession:{sessionId:other,tenantId:t,membershipId:other,userId:other}} as unknown as GymProAuthenticatedRequest;
+let service:PosHistoryService;let hash:ReturnType<typeof vi.fn>;
+describe('Gym Pro POS history',()=>{
+ beforeEach(async()=>{vi.clearAllMocks();hash=vi.fn(()=>Buffer.alloc(32));service=new PosHistoryService({get:()=> 'postgresql://gympro_app@localhost/gympro_saas'} as unknown as ConfigService,{hashAuthorization:hash} as unknown as SessionBearerTokenService);mocks.query.mockResolvedValue({rows:[{safe:true}]});await service.onModuleInit();mocks.query.mockReset();});
+ const list=()=>service.list(req,t,b,query);
+ it('passes validated date range and returns only public fields',async()=>{mocks.query.mockResolvedValue({rows:[{receipt:{...result,actorSnapshot:{private:true},items:[{...row,actorSnapshot:{private:true}}]}}]});const out=await list();expect(out.items[0]!.status).toBe('partially_refunded');expect(out).not.toHaveProperty('actorSnapshot');expect(out.items[0]).not.toHaveProperty('actorSnapshot');expect(mocks.query.mock.calls[0]![1]).toEqual([Buffer.alloc(32),t,b,query.from,query.through,null,25]);});
+ it('leaves today to the database Yangon calendar',async()=>{mocks.query.mockResolvedValue({rows:[{receipt:result}]});await service.list(req,t,b,{});expect(mocks.query.mock.calls[0]![1]).toEqual([Buffer.alloc(32),t,b,null,null,null,25]);});
+ for(const q of [null,[],{status:'completed'},{tenantId:t},{from:'2026-10-15'},{through:'2026-10-15'},{from:'2026-02-30',through:'2026-03-01'},{from:'2026-10-15',through:'2026-10-14'},{from:'2025-01-01',through:'2026-01-02'},{from:['2026-10-15'],through:'2026-10-15'},{limit:'0'},{limit:'101'},{limit:25},{limit:'1.5'},{cursor:'bad'}])it(`rejects invalid history query ${JSON.stringify(q)}`,async()=>{await expect(service.list(req,t,b,q)).rejects.toBeInstanceOf(BadRequestException);expect(mocks.query).not.toHaveBeenCalled();});
+ it('accepts a leap-day boundary and maximum page limit',()=>expect(historyInput({from:'2024-02-29',through:'2025-02-28',limit:'100',cursor:p.toUpperCase()})).toEqual({from:'2024-02-29',through:'2025-02-28',limit:100,cursor:p}));
+ it('rejects missing verified sessions',async()=>{await expect(service.list({headers:{}} as GymProAuthenticatedRequest,t,b,{})).rejects.toBeInstanceOf(UnauthorizedException);});
+ it('rejects another route tenant',async()=>{await expect(service.list(req,other,b,{})).rejects.toBeInstanceOf(ForbiddenException);});
+ it('rejects malformed branches',async()=>{await expect(service.list(req,t,'bad',{})).rejects.toBeInstanceOf(BadRequestException);});
+ it('rejects an invalid token hash',async()=>{hash.mockReturnValue(Buffer.alloc(31));await expect(list()).rejects.toBeInstanceOf(UnauthorizedException);});
+ for(const [code,message,expected]of [['28000','Invalid session',UnauthorizedException],['42501','Permission denied',ForbiddenException],['22023','Private cursor details',BadRequestException],['42501','permission denied for table pos_sales',ServiceUnavailableException],['ECONNREFUSED','Private connection string',ServiceUnavailableException]] as const)it(`maps ${code}/${message} safely`,async()=>{mocks.query.mockRejectedValue({code,message});await expect(list()).rejects.toBeInstanceOf(expected);await expect(list()).rejects.not.toThrow('Private');});
+ for(const change of [{tenantId:other},{branchId:other},{from:'2026-10-14'},{through:'2026-10-16'},{items:[row,row]},{nextCursor:p},{items:[{...row,tenantId:other}]},{items:[{...row,branchId:other}]},{items:[{...row,totalAmount:3000}]},{items:[{...row,reversedAmount:'3001.00'}]},{items:[{...row,status:'completed'}]},{items:[{...row,status:'voided'}]},{items:[{...row,quantityReturned:'4'}]},{items:[{...row,createdAt:'2026-02-30T00:00:00Z'}]},{items:[{...row,createdAt:'2026-10-14T17:29:59Z'}]}])it(`rejects invalid history result ${JSON.stringify(change)}`,async()=>{mocks.query.mockResolvedValue({rows:[{receipt:{...result,...change}}]});await expect(list()).rejects.toBeInstanceOf(ServiceUnavailableException);});
+ it('accepts the Yangon midnight boundary',()=>expect(historyPage({...result,items:[{...row,createdAt:'2026-10-14T17:30:00Z'}]},t,b,historyInput(query)).items).toHaveLength(1));
+ it('accepts an empty page with no next cursor',()=>expect(historyPage({...result,items:[]},t,b,historyInput(query)).items).toEqual([]));
+ it('validates the next cursor against the last page row',()=>expect(historyPage({...result,nextCursor:p},t,b,historyInput({...query,limit:'1'})).nextCursor).toBe(p));
+ it('rejects a cursor returned again',()=>expect(()=>historyPage(result,t,b,historyInput({...query,cursor:p}))).toThrow());
+ it('uses quantities to distinguish a free partial refund',()=>expect(historyPage({...result,items:[{...row,totalAmount:'0.00',reversedAmount:'0.00'}]},t,b,historyInput(query)).items[0]!.status).toBe('partially_refunded'));
+ it('handles exact amounts beyond safe integer precision',()=>expect(historyPage({...result,items:[{...row,totalAmount:'1999999999999.98',reversedAmount:'999999999999.99'}]},t,b,historyInput(query)).items[0]!.totalAmount).toBe('1999999999999.98'));
+ it('rejects an empty function result',async()=>{mocks.query.mockResolvedValue({rows:[]});await expect(list()).rejects.toBeInstanceOf(ServiceUnavailableException);});
+ it('rejects unsafe startup and blocks subsequent reads',async()=>{mocks.query.mockResolvedValue({rows:[{safe:false}]});await expect(service.onModuleInit()).rejects.toThrow('restricted');await expect(list()).rejects.toBeInstanceOf(ServiceUnavailableException);});
+ it('closes the pool and blocks reads after shutdown',async()=>{await service.onModuleDestroy();expect(mocks.end).toHaveBeenCalledOnce();await expect(list()).rejects.toBeInstanceOf(ServiceUnavailableException);});
+ it('requires authentication, tenant scope and permissions',()=>expect(Reflect.getMetadata(GUARDS_METADATA,PosHistoryController)).toEqual([AuthenticatedSessionGuard,TenantScopeGuard,PermissionGuard]));
+ it('requires sale read permission',()=>expect(Reflect.getMetadata('gympro.required_permission',PosHistoryController.prototype.list)).toBe('pos.sales.read'));
+});
