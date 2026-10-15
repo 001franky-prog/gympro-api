@@ -1,3 +1,4 @@
+import { AttendanceModule } from '../attendance/attendance.module.js';
 import { BranchMembershipController } from './branch-membership.controller.js';
 import { Module } from '@nestjs/common';
 import { AuthModule } from '../auth/auth.module.js';
@@ -30,7 +31,7 @@ import { MembershipDiscountController } from './membership-discount.controller.j
 import { MembershipDiscountService } from './membership-discount.service.js';
 
 @Module({
-  imports: [AuthModule],
+  imports: [AuthModule, AttendanceModule],
   controllers: [
     BranchMembershipController,
     MembersController,
