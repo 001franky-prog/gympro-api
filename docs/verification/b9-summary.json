@@ -1,0 +1,10 @@
+﻿{
+    "checkpoint":  "B9 regression batch",
+    "completedAt":  "2026-10-15T05:26:18.2803858Z",
+    "commit":  "2e98cd4ad1e7b4d4126d48bbde8322d31653d2b1",
+    "buildPassed":  true,
+    "fullTestSuitePassed":  true,
+    "e2eSuitePassed":  true,
+    "branchHttpVerificationPassed":  true,
+    "limitations":  "Concurrency, performance, and fresh-server restore are not verified by this batch."
+}
