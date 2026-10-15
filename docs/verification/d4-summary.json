@@ -1,0 +1,12 @@
+﻿{
+    "checkpoint":  "D4 sale variable correction",
+    "verifiedAt":  "2026-10-15T23:07:25.6335661+06:30",
+    "priorVerificationReport":  "C:\\Projects\\gympro-backups\\d4-pos-sales-20261015-225447-2ea8c0",
+    "priorBuildUnitRootE2eD2Reused":  true,
+    "priorUnitTestsPassed":  1056,
+    "combinedD4D3HttpChecksPassed":  48,
+    "attendanceAndBranchRegressionPassed":  true,
+    "fixturesRemoved":  true,
+    "newBusinessTablesCreated":  false,
+    "gitCommitPerformed":  false
+}
