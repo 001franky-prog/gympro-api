@@ -2,12 +2,13 @@
   'use strict';
   const $=id=>document.getElementById(id);
   const uuid=v=>typeof v==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
-  const state={token:null,tenant:null,currentCursor:null,historyCursor:null,historyFilter:null,qrUrl:null,stream:null,cameraTimer:null,cameraVersion:0,working:false,generation:0,requests:new Map()};
+  const state={token:null,tenant:null,currentCursor:null,historyCursor:null,historyFilter:null,memberCursor:null,memberQuery:null,qrUrl:null,stream:null,cameraTimer:null,cameraVersion:0,working:false,generation:0,requests:new Map()};
   function notice(text,kind=''){ $('notice').textContent=text;$('notice').className='notice'+(kind?' '+kind:''); }
   function time(v){return new Date(v).toLocaleString(undefined,{timeZone:'Asia/Yangon'});}
   function clearQr(){if(state.qrUrl)URL.revokeObjectURL(state.qrUrl);state.qrUrl=null;$('card-qr').removeAttribute('src');$('card-qr').hidden=true;$('download-qr').removeAttribute('href');$('download-qr').hidden=true;}
   function stopCamera(){state.cameraVersion++;if(state.cameraTimer)clearTimeout(state.cameraTimer);state.cameraTimer=null;if(state.stream)state.stream.getTracks().forEach(t=>t.stop());state.stream=null;$('camera').srcObject=null;$('camera-hint').hidden=false;}
-  function clearSession(){state.generation++;state.token=null;state.tenant=null;state.requests.clear();state.currentCursor=null;state.historyCursor=null;stopCamera();clearQr();$('workspace').disabled=true;$('logout').disabled=true;$('tenant').disabled=false;$('email').disabled=false;$('password').value='';$('password').disabled=false;$('login').disabled=false;$('session-status').textContent='Signed out';$('current-list').replaceChildren();$('history-list').replaceChildren();$('scan-result').textContent='';$('scan-payload').value='';$('member-id').value='';$('card-id').value='';$('revoke-reason').value='';$('card-name').textContent='Member card';$('card-number').textContent='Select a card to view details.';$('card-status').textContent='No card selected';$('card-date').textContent='';$('more-current').hidden=true;$('more-history').hidden=true;}
+  function clearMemberSearch(){state.memberCursor=null;state.memberQuery=null;$('member-search-results').replaceChildren();$('member-search').value='';$('selected-member').textContent='';$('more-members').hidden=true;}
+  function clearSession(){clearMemberSearch();state.generation++;state.token=null;state.tenant=null;state.requests.clear();state.currentCursor=null;state.historyCursor=null;stopCamera();clearQr();$('workspace').disabled=true;$('logout').disabled=true;$('tenant').disabled=false;$('email').disabled=false;$('password').value='';$('password').disabled=false;$('login').disabled=false;$('session-status').textContent='Signed out';$('current-list').replaceChildren();$('history-list').replaceChildren();$('scan-result').textContent='';$('scan-payload').value='';$('member-id').value='';$('card-id').value='';$('revoke-reason').value='';$('card-name').textContent='Member card';$('card-number').textContent='Select a card to view details.';$('card-status').textContent='No card selected';$('card-date').textContent='';$('more-current').hidden=true;$('more-history').hidden=true;}
   function context(){if(!state.token||!uuid(state.tenant))throw new Error('Sign in first.');const branch=$('branch').value.trim();if(!uuid(branch))throw new Error('Enter a valid branch identifier.');return `/tenants/${state.tenant}/branches/${branch}`;}
   async function api(path,options={}){
     if(!path.startsWith('/auth/')&&!path.startsWith('/tenants/'))throw new Error('Invalid request.');
@@ -49,11 +50,33 @@
   });
   bind('logout','click',async()=>{try{await api('/auth/logout',{method:'POST'});}finally{clearSession();notice('Signed out.');}});
   bind('issue-form','submit',async()=>{const member=$('member-id').value.trim();if(!uuid(member))throw new Error('Enter a valid member identifier.');const receipt=await mutate(context()+`/members/${member}/cards/issue`,{});$('card-id').value=receipt.cardId;try{await showCard();notice('Card issued and displayed.','success');}catch(e){notice('Card issued. '+e.message,'success');}});
+  async function searchMembers(append=false){
+    const base=context(),generation=state.generation,term=append?state.memberQuery:$('member-search').value.trim();
+    if(typeof term!=='string'||[...term].length<2||[...term].length>100)throw new Error('Enter 2 to 100 characters to search.');
+    if(!append){state.memberCursor=null;state.memberQuery=term;$('member-search-results').replaceChildren();$('more-members').hidden=true;}
+    const cursor=append?state.memberCursor:null;
+    const data=await api(base+'/members/lookup?q='+encodeURIComponent(term)+'&limit=25'+(cursor?'&cursor='+encodeURIComponent(cursor):''));
+    if(generation!==state.generation)return;
+    if(!data||!Array.isArray(data.items)||data.items.length>25||(data.nextCursor!==null&&!uuid(data.nextCursor)))throw new Error('Invalid member lookup response.');
+    const list=$('member-search-results');
+    if(!append&&!data.items.length){const p=document.createElement('p');p.textContent='No matching members in this branch.';p.className='empty';list.append(p);}
+    for(const member of data.items){
+      if(!uuid(member.id)||typeof member.fullName!=='string'||typeof member.memberNumber!=='string'||!['active','pending','inactive','blacklisted'].includes(member.status))throw new Error('Invalid member lookup response.');
+      const item=document.createElement('div');item.className='visit';const detail=document.createElement('div'),name=document.createElement('strong'),status=document.createElement('p');
+      name.textContent=member.fullName+' · '+member.memberNumber;status.textContent=member.status;detail.append(name,status);item.append(detail);
+      const button=document.createElement('button');button.type='button';button.className='quiet';button.textContent='Select member';
+      button.addEventListener('click',()=>{if(state.working||generation!==state.generation||!state.token)return;clearQr();$('card-id').value='';$('revoke-reason').value='';$('card-name').textContent='Member card';$('card-number').textContent='Select a card to view details.';$('card-status').textContent='No card selected';$('card-date').textContent='';$('member-id').value=member.id;$('selected-member').textContent=member.fullName+' · '+member.memberNumber+' · '+member.status;notice(member.status==='active'?'Member selected. You may issue a card if authorized.':'Member selected. Card issuance requires an active member.');});
+      item.append(button);list.append(item);
+    }
+    state.memberCursor=data.nextCursor;$('more-members').hidden=!data.nextCursor;notice('Member search loaded.','success');
+  }
+  bind('member-search-form','submit',()=>searchMembers(false));bind('more-members','click',()=>searchMembers(true));
+  $('member-id').addEventListener('input',()=>{$('selected-member').textContent='';});
   bind('card-form','submit',showCard);
   bind('revoke-form','submit',async()=>{const id=$('card-id').value.trim(),reason=$('revoke-reason').value.trim();if(!uuid(id))throw new Error('Select a valid card first.');if([...reason].length<2||[...reason].length>500)throw new Error('Use a revocation reason of 2 to 500 characters.');await mutate(context()+`/cards/${id}/revoke`,{reason});clearQr();$('card-status').textContent='revoked';notice('Card revoked.','success');});
   bind('scan-form','submit',scan);bind('start-camera','click',camera);$('stop-camera').addEventListener('click',stopCamera);bind('refresh-current','click',()=>loadCurrent(false));bind('more-current','click',()=>loadCurrent(true));bind('history-form','submit',()=>loadHistory(false));bind('more-history','click',()=>loadHistory(true));
   $('qr-file').addEventListener('change',()=>execute(async()=>{context();const file=$('qr-file').files?.[0];if(!file)return;if(!file.type.startsWith('image/')||file.size>10*1024*1024)throw new Error('Choose a QR image smaller than 10 MB.');const image=await createImageBitmap(file);try{const payload=decode(image,image.width,image.height);if(!payload)throw new Error('No readable QR found. Try a clearer image.');$('scan-payload').value=payload;notice('QR decoded. Check the member identity, then choose Check in member.','success');}finally{image.close();$('qr-file').value='';}}));
   for(const name of ['attendance','cards'])$('tab-'+name).addEventListener('click',()=>{for(const n of ['attendance','cards']){$(n+'-view').hidden=n!==name;$('tab-'+n).className='tab'+(n===name?' active':'');$('tab-'+n).setAttribute('aria-pressed',String(n===name));}if(name==='cards')stopCamera();});
-  $('branch').addEventListener('change',()=>{state.generation++;state.currentCursor=null;state.historyCursor=null;$('current-list').replaceChildren();$('history-list').replaceChildren();$('more-current').hidden=true;$('more-history').hidden=true;stopCamera();clearQr();$('card-id').value='';$('member-id').value='';$('card-name').textContent='Member card';$('card-number').textContent='Select a card for this branch.';$('card-status').textContent='No card selected';$('card-date').textContent='';notice('Branch changed. Refresh the information for this branch.');});
+  $('branch').addEventListener('change',()=>{clearMemberSearch();state.generation++;state.currentCursor=null;state.historyCursor=null;$('current-list').replaceChildren();$('history-list').replaceChildren();$('more-current').hidden=true;$('more-history').hidden=true;stopCamera();clearQr();$('card-id').value='';$('member-id').value='';$('card-name').textContent='Member card';$('card-number').textContent='Select a card for this branch.';$('card-status').textContent='No card selected';$('card-date').textContent='';notice('Branch changed. Refresh the information for this branch.');});
   window.addEventListener('pagehide',()=>{const token=state.token;clearSession();if(token)fetch('/auth/logout',{method:'POST',headers:{Authorization:'Bearer '+token},keepalive:true}).catch(()=>{});});
 })();

@@ -1,0 +1,34 @@
+import {beforeEach,describe,it,expect,vi} from 'vitest';
+import {BadRequestException,ForbiddenException,ServiceUnavailableException,UnauthorizedException} from '@nestjs/common';
+import type {ConfigService} from '@nestjs/config';
+import type {SessionBearerTokenService} from '../auth/session-bearer-token.service.js';
+import type {GymProAuthenticatedRequest} from '../auth/authenticated-session.guard.js';
+const db=vi.hoisted(()=>({query:vi.fn(),end:vi.fn(),on:vi.fn()}));
+vi.mock('pg',()=>{class Pool{query=db.query;end=db.end;on=db.on;}return{default:{Pool},Pool};});
+import {MemberLookupService} from './member-lookup.service.js';
+const id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',branch='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',next='cccccccc-cccc-4ccc-8ccc-cccccccccccc';
+const req={headers:{authorization:'Bearer test'},gymproSession:{sessionId:id,tenantId:id,membershipId:id,userId:id}}as GymProAuthenticatedRequest;
+const config={get:()=> 'postgresql://test-only'}as unknown as ConfigService;
+const bearer={hashAuthorization:()=>Buffer.alloc(32)}as unknown as SessionBearerTokenService;
+const row={id,tenant_id:id,branch_id:branch,member_number:'GP-1',full_name:'Member Name',status:'active'};
+describe('Branch member lookup boundaries',()=>{
+ beforeEach(()=>{vi.clearAllMocks();db.query.mockReset();db.end.mockResolvedValue(undefined);});
+ async function ready(){const s=new MemberLookupService(config,bearer);db.query.mockResolvedValueOnce({rows:[{safe:true}]});await s.onModuleInit();return s;}
+ it('normalizes a literal search and returns public fields',async()=>{const s=await ready();db.query.mockResolvedValueOnce({rows:[{...row,email:'private',phone:'private'}]});const r=await s.search(req,id,branch,{q:'  Member%  '});expect(db.query.mock.calls.at(-1)![1]).toEqual([Buffer.alloc(32),id,branch,'Member%',25,null]);expect(r).toEqual({items:[{id,memberNumber:'GP-1',fullName:'Member Name',status:'active'}],nextCursor:null});});
+ it('returns a continuation cursor from the last visible row',async()=>{const s=await ready();db.query.mockResolvedValueOnce({rows:[row,{...row,id:next}]});const r=await s.search(req,id,branch,{q:'Member',limit:'1'});expect(r.items).toHaveLength(1);expect(r.nextCursor).toBe(id);});
+ it('passes the continuation UUID as a bound parameter',async()=>{const s=await ready();db.query.mockResolvedValueOnce({rows:[{...row,id:next}]});await s.search(req,id,branch,{q:'Member',cursor:id});expect(db.query.mock.calls.at(-1)![1][5]).toBe(id);});
+ it('accepts an empty result',async()=>{const s=await ready();db.query.mockResolvedValueOnce({rows:[]});expect(await s.search(req,id,branch,{q:'Nobody'})).toEqual({items:[],nextCursor:null});});
+ it.each([null,[],{}, {q:['ab']},{q:'a'},{q:'   '},{q:'x'.repeat(101)},{q:'ab',limit:'0'},{q:'ab',limit:'51'},{q:'ab',limit:25},{q:'ab',cursor:'bad'},{q:'ab',tenantId:id}])('rejects invalid query %j',async(q)=>{const s=await ready();await expect(s.search(req,id,branch,q)).rejects.toBeInstanceOf(BadRequestException);expect(db.query).toHaveBeenCalledTimes(1);});
+ it('rejects a missing verified session',async()=>{const s=await ready();await expect(s.search({}as GymProAuthenticatedRequest,id,branch,{q:'ab'})).rejects.toBeInstanceOf(UnauthorizedException);});
+ it('rejects another tenant',async()=>{const s=await ready();await expect(s.search(req,branch,branch,{q:'ab'})).rejects.toBeInstanceOf(ForbiddenException);});
+ it('rejects malformed branch',async()=>{const s=await ready();await expect(s.search(req,id,'bad',{q:'ab'})).rejects.toBeInstanceOf(BadRequestException);});
+ it('rejects invalid token hash',async()=>{const s=new MemberLookupService(config,{hashAuthorization:()=>Buffer.alloc(1)}as unknown as SessionBearerTokenService);db.query.mockResolvedValueOnce({rows:[{safe:true}]});await s.onModuleInit();await expect(s.search(req,id,branch,{q:'ab'})).rejects.toBeInstanceOf(UnauthorizedException);});
+ it('rejects use before startup verification',async()=>{await expect(new MemberLookupService(config,bearer).search(req,id,branch,{q:'ab'})).rejects.toBeInstanceOf(ServiceUnavailableException);});
+ it('rejects unsafe startup',async()=>{const s=new MemberLookupService(config,bearer);db.query.mockResolvedValueOnce({rows:[{safe:false}]});await expect(s.onModuleInit()).rejects.toThrow();});
+ it.each([{code:'28000',message:'Invalid or expired session',type:UnauthorizedException},{code:'42501',message:'Member lookup access denied',type:ForbiddenException},{code:'42501',message:'private table details',type:ServiceUnavailableException},{code:'22023',message:'private',type:BadRequestException},{code:'08006',message:'private',type:ServiceUnavailableException}])('maps errors safely $code',async(e)=>{const s=await ready();db.query.mockRejectedValueOnce(e);await expect(s.search(req,id,branch,{q:'ab'})).rejects.toBeInstanceOf(e.type);});
+ it.each([{...row,tenant_id:branch},{...row,branch_id:id},{...row,id:'bad'},{...row,status:'unexpected'},{...row,full_name:''},{...row,member_number:''}])('rejects invalid output %j',async(r)=>{const s=await ready();db.query.mockResolvedValueOnce({rows:[r]});await expect(s.search(req,id,branch,{q:'ab'})).rejects.toBeInstanceOf(ServiceUnavailableException);});
+ it('rejects duplicate/out-of-order output',async()=>{const s=await ready();db.query.mockResolvedValueOnce({rows:[row,row]});await expect(s.search(req,id,branch,{q:'ab'})).rejects.toBeInstanceOf(ServiceUnavailableException);});
+ it('rejects rows preceding a cursor',async()=>{const s=await ready();db.query.mockResolvedValueOnce({rows:[row]});await expect(s.search(req,id,branch,{q:'ab',cursor:next})).rejects.toBeInstanceOf(ServiceUnavailableException);});
+ it('rejects excessive result size',async()=>{const s=await ready();db.query.mockResolvedValueOnce({rows:[row,row,row]});await expect(s.search(req,id,branch,{q:'ab',limit:'1'})).rejects.toBeInstanceOf(ServiceUnavailableException);});
+ it('closes the pool and blocks use after shutdown',async()=>{const s=await ready();await s.onModuleDestroy();expect(db.end).toHaveBeenCalledOnce();await expect(s.search(req,id,branch,{q:'ab'})).rejects.toBeInstanceOf(ServiceUnavailableException);});
+});
