@@ -1,0 +1,31 @@
+import {beforeEach,describe,it,expect,vi} from 'vitest';
+import {BadRequestException,ForbiddenException,ServiceUnavailableException,UnauthorizedException} from '@nestjs/common';
+import type {ConfigService} from '@nestjs/config';
+import type {SessionBearerTokenService} from '../auth/session-bearer-token.service.js';
+import type {GymProAuthenticatedRequest} from '../auth/authenticated-session.guard.js';
+const db=vi.hoisted(()=>({query:vi.fn(),end:vi.fn(),on:vi.fn()}));
+vi.mock('pg',()=>{class Pool{query=db.query;end=db.end;on=db.on;}return{default:{Pool},Pool};});
+import {AttendanceReadService} from './attendance-read.service.js';
+const id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',branch='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+const req={headers:{authorization:'Bearer test'},gymproSession:{sessionId:id,tenantId:id,membershipId:id,userId:id}}as GymProAuthenticatedRequest;
+const config={get:()=> 'postgresql://test-only'}as unknown as ConfigService;
+const bearer={hashAuthorization:()=>Buffer.alloc(32)}as unknown as SessionBearerTokenService;
+const row={tenant_id:id,branch_id:branch,summary_day:'2026-10-15',check_ins:2,distinct_members:1,check_outs:3,current_occupancy:0,generated_at:new Date('2026-10-15T10:00:00Z')};
+describe('Branch attendance summary boundaries',()=>{
+ beforeEach(()=>{vi.clearAllMocks();db.query.mockReset();db.end.mockResolvedValue(undefined);});
+ async function ready(){const s=new AttendanceReadService(config,bearer);db.query.mockResolvedValueOnce({rows:[{safe:true}]});await s.onModuleInit();return s;}
+ it('uses the server day and returns aggregate public fields only',async()=>{const s=await ready();db.query.mockResolvedValueOnce({rows:[{...row,actor_snapshot:{private:true}}]});const r=await s.summary(req,id,branch,{});expect(db.query.mock.calls[1][1]).toEqual([Buffer.alloc(32),id,branch,null]);expect(r).toEqual({tenantId:id,branchId:branch,day:'2026-10-15',timeZone:'Asia/Yangon',checkIns:2,distinctMembers:1,checkOuts:3,currentOccupancy:0,generatedAt:row.generated_at});});
+ it('binds an explicitly selected calendar day',async()=>{const s=await ready();db.query.mockResolvedValueOnce({rows:[row]});await s.summary(req,id,branch,{day:'2026-10-15'});expect(db.query.mock.calls[1][1][3]).toBe('2026-10-15');});
+ it('allows zero daily counts with an overnight occupant',async()=>{const s=await ready();db.query.mockResolvedValueOnce({rows:[{...row,check_ins:0,distinct_members:0,check_outs:0,current_occupancy:1}]});expect((await s.summary(req,id,branch,{})).currentOccupancy).toBe(1);});
+ it.each([{q:null},{q:[]},{q:{day:'2026-02-30'}},{q:{day:'infinity'}},{q:{day:'0000-01-01'}},{q:{day:['2026-10-15']}},{q:{day:'2026-1-1'}},{q:{tenantId:id}},{q:{limit:'1'}}])('rejects invalid queries $q',async({q})=>{const s=await ready();await expect(s.summary(req,id,branch,q)).rejects.toBeInstanceOf(BadRequestException);expect(db.query).toHaveBeenCalledTimes(1);});
+ it('rejects a missing verified session',async()=>{const s=await ready();await expect(s.summary({}as GymProAuthenticatedRequest,id,branch,{})).rejects.toBeInstanceOf(UnauthorizedException);});
+ it('rejects another route tenant',async()=>{const s=await ready();await expect(s.summary(req,branch,branch,{})).rejects.toBeInstanceOf(ForbiddenException);});
+ it('rejects an invalid branch',async()=>{const s=await ready();await expect(s.summary(req,id,'bad',{})).rejects.toBeInstanceOf(BadRequestException);});
+ it('rejects an invalid token hash',async()=>{const s=new AttendanceReadService(config,{hashAuthorization:()=>Buffer.alloc(1)}as unknown as SessionBearerTokenService);db.query.mockResolvedValueOnce({rows:[{safe:true}]});await s.onModuleInit();await expect(s.summary(req,id,branch,{})).rejects.toBeInstanceOf(UnauthorizedException);});
+ it('blocks summary before startup verification',async()=>{await expect(new AttendanceReadService(config,bearer).summary(req,id,branch,{})).rejects.toBeInstanceOf(ServiceUnavailableException);});
+ it.each([{code:'28000',message:'Invalid or expired session',type:UnauthorizedException},{code:'42501',message:'Attendance access denied',type:ForbiddenException},{code:'42501',message:'private table',type:ServiceUnavailableException},{code:'22023',message:'private',type:BadRequestException},{code:'08006',message:'private',type:ServiceUnavailableException}])('maps errors safely $code',async(e)=>{const s=await ready();db.query.mockRejectedValueOnce(e);await expect(s.summary(req,id,branch,{})).rejects.toBeInstanceOf(e.type);});
+ it.each([{...row,tenant_id:branch},{...row,branch_id:id},{...row,summary_day:'2026-02-30'},{...row,check_ins:-1},{...row,check_ins:'2'},{...row,distinct_members:3},{...row,check_outs:1.5},{...row,current_occupancy:-1},{...row,generated_at:new Date('invalid')}])('rejects malformed summary output %j',async(v)=>{const s=await ready();db.query.mockResolvedValueOnce({rows:[v]});await expect(s.summary(req,id,branch,{})).rejects.toBeInstanceOf(ServiceUnavailableException);});
+ it('rejects a returned day different from the request',async()=>{const s=await ready();db.query.mockResolvedValueOnce({rows:[row]});await expect(s.summary(req,id,branch,{day:'2026-10-14'})).rejects.toBeInstanceOf(ServiceUnavailableException);});
+ it.each([{rows:[]},{rows:[row,row]}])('requires exactly one aggregate row',async({rows})=>{const s=await ready();db.query.mockResolvedValueOnce({rows});await expect(s.summary(req,id,branch,{})).rejects.toBeInstanceOf(ServiceUnavailableException);});
+ it('blocks summary after shutdown',async()=>{const s=await ready();await s.onModuleDestroy();await expect(s.summary(req,id,branch,{})).rejects.toBeInstanceOf(ServiceUnavailableException);});
+});
