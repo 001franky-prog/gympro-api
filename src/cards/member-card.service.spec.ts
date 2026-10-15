@@ -1,0 +1,34 @@
+import {beforeEach,describe,it,expect,vi} from 'vitest';
+import {BadRequestException,ForbiddenException,ServiceUnavailableException,UnauthorizedException} from '@nestjs/common';
+import type {ConfigService} from '@nestjs/config';
+import type {SessionBearerTokenService} from '../auth/session-bearer-token.service.js';
+import type {GymProAuthenticatedRequest} from '../auth/authenticated-session.guard.js';
+const db=vi.hoisted(()=>({query:vi.fn(),end:vi.fn(),on:vi.fn()}));
+vi.mock('pg',()=>{class Pool{query=db.query;end=db.end;on=db.on;}return{Pool,default:{Pool}};});
+import {MemberCardService} from './member-card.service.js';
+const id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',branch='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+const req={headers:{authorization:'Bearer test'},gymproSession:{sessionId:id,tenantId:id,membershipId:id,userId:id}} as GymProAuthenticatedRequest;
+const config={get:()=> 'postgresql://test-only'} as unknown as ConfigService;
+const bearer={hashAuthorization:()=>Buffer.alloc(32)} as unknown as SessionBearerTokenService;
+const at=new Date('2026-10-15T00:00:00Z');
+const event={id,tenant_id:id,branch_id:branch,member_id:id,card_id:id,request_id:id,event_type:'issued',reason:null,event_at:at,actor_snapshot:{private:true}};
+const card={id,tenant_id:id,branch_id:branch,member_id:id,member_number:'GP-0001',full_name:'Test Member',status:'active',issued_at:at,revoked_at:null};
+describe('Member card boundaries',()=>{
+ beforeEach(()=>{vi.clearAllMocks();db.query.mockReset();db.end.mockResolvedValue(undefined);});
+ async function ready(){const s=new MemberCardService(config,bearer);db.query.mockResolvedValueOnce({rows:[{safe:true}]});await s.onModuleInit();return s;}
+ it('binds issuance to session and route, returns only event receipt',async()=>{const s=await ready();db.query.mockResolvedValueOnce({rows:[event]});const r=await s.issue(req,id,branch,id,{requestId:id});expect(db.query.mock.calls.at(-1)![1]).toEqual([Buffer.alloc(32),id,branch,id,'issue',id,null]);expect(r.cardId).toBe(id);expect(r).not.toHaveProperty('actor_snapshot');});
+ it('normalizes revocation reason and preserves request identity',async()=>{const s=await ready();db.query.mockResolvedValueOnce({rows:[{...event,event_type:'revoked',reason:'Lost card'}]});await s.revoke(req,id,branch,id,{requestId:id,reason:'  Lost card  '});expect(db.query.mock.calls.at(-1)![1]).toEqual([Buffer.alloc(32),id,branch,id,'revoke',id,'Lost card']);});
+ it('returns current public card details',async()=>{const s=await ready();db.query.mockResolvedValueOnce({rows:[card]});const r=await s.read(req,id,branch,id,{});expect(r.status).toBe('active');expect(r).not.toHaveProperty('actor_snapshot');});
+ it.each([{},null,[],{requestId:'bad'},{requestId:id,status:'active'},{requestId:id,memberId:id},{requestId:id,reason:'extra'}])('rejects invalid issuance body %j',async(body)=>{const s=await ready();await expect(s.issue(req,id,branch,id,body)).rejects.toBeInstanceOf(BadRequestException);expect(db.query).toHaveBeenCalledTimes(1);});
+ it.each([undefined,'',' ','x','x'.repeat(501),123])('rejects invalid revocation reason %j',async(reason)=>{const s=await ready();await expect(s.revoke(req,id,branch,id,{requestId:id,reason})).rejects.toBeInstanceOf(BadRequestException);});
+ it('accepts a 500-code-point revocation reason',async()=>{const s=await ready();const reason='😀'.repeat(500);db.query.mockResolvedValueOnce({rows:[{...event,event_type:'revoked',reason}]});await expect(s.revoke(req,id,branch,id,{requestId:id,reason})).resolves.toHaveProperty('reason',reason);});
+ it('rejects query parameters on details',async()=>{const s=await ready();await expect(s.read(req,id,branch,id,{tenantId:id})).rejects.toBeInstanceOf(BadRequestException);});
+ it('rejects missing verified session',async()=>{const s=await ready();await expect(s.issue({}as GymProAuthenticatedRequest,id,branch,id,{requestId:id})).rejects.toBeInstanceOf(UnauthorizedException);});
+ it('rejects another route tenant',async()=>{const s=await ready();await expect(s.issue(req,branch,branch,id,{requestId:id})).rejects.toBeInstanceOf(ForbiddenException);});
+ it('blocks before startup',async()=>{const s=new MemberCardService(config,bearer);await expect(s.issue(req,id,branch,id,{requestId:id})).rejects.toBeInstanceOf(ServiceUnavailableException);});
+ it('rejects unsafe startup',async()=>{const s=new MemberCardService(config,bearer);db.query.mockResolvedValueOnce({rows:[{safe:false}]});await expect(s.onModuleInit()).rejects.toThrow();});
+ it.each([{code:'28000',message:'Invalid or expired session',type:UnauthorizedException},{code:'42501',message:'Card access denied',type:ForbiddenException},{code:'22023',message:'private',type:BadRequestException},{code:'08006',message:'private',type:ServiceUnavailableException}])('maps database failure $code safely',async(e)=>{const s=await ready();db.query.mockRejectedValueOnce(e);await expect(s.issue(req,id,branch,id,{requestId:id})).rejects.toBeInstanceOf(e.type);});
+ it.each([{...event,tenant_id:branch},{...event,branch_id:id},{...event,member_id:branch},{...event,request_id:branch},{...event,event_type:'revoked'},{...event,event_at:new Date('invalid')}])('rejects mismatched event receipt',async(r)=>{const s=await ready();db.query.mockResolvedValueOnce({rows:[r]});await expect(s.issue(req,id,branch,id,{requestId:id})).rejects.toBeInstanceOf(ServiceUnavailableException);});
+ it('rejects invalid revocation chronology in card details',async()=>{const s=await ready();db.query.mockResolvedValueOnce({rows:[{...card,status:'revoked',revoked_at:new Date('2026-01-01T00:00:00Z')}]});await expect(s.read(req,id,branch,id,{})).rejects.toBeInstanceOf(ServiceUnavailableException);});
+ it('closes pool and blocks subsequent requests',async()=>{const s=await ready();await s.onModuleDestroy();expect(db.end).toHaveBeenCalledOnce();await expect(s.issue(req,id,branch,id,{requestId:id})).rejects.toBeInstanceOf(ServiceUnavailableException);});
+});
