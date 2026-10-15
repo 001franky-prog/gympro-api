@@ -1,0 +1,34 @@
+import {beforeEach,describe,it,expect,vi} from 'vitest';
+import {BadRequestException,ForbiddenException,ServiceUnavailableException,UnauthorizedException} from '@nestjs/common';
+import type {ConfigService} from '@nestjs/config';
+import type {SessionBearerTokenService} from '../auth/session-bearer-token.service.js';
+import type {GymProAuthenticatedRequest} from '../auth/authenticated-session.guard.js';
+import type {MemberCardService} from './member-card.service.js';
+const db=vi.hoisted(()=>({query:vi.fn(),end:vi.fn(),on:vi.fn(),render:vi.fn(),read:vi.fn()}));
+vi.mock('pg',()=>{class Pool{query=db.query;end=db.end;on=db.on;}return{Pool,default:{Pool}};});
+vi.mock('qrcode',()=>({default:{toString:db.render}}));
+import {CardScanService} from './card-scan.service.js';
+const id='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',branch='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+const payload=`GP1:${id}:${branch}:${id}`;
+const req={headers:{authorization:'Bearer test'},gymproSession:{sessionId:id,tenantId:id,membershipId:id,userId:id}} as GymProAuthenticatedRequest;
+const config={get:()=> 'postgresql://test-only'} as unknown as ConfigService;
+const bearer={hashAuthorization:()=>Buffer.alloc(32)} as unknown as SessionBearerTokenService;
+const cards={read:db.read} as unknown as MemberCardService;
+const row={id,tenant_id:id,branch_id:branch,member_id:id,subscription_id:id,request_id:id,checked_in_at:new Date('2026-10-15T00:00:00Z'),checked_out_at:null,business_date:'2026-10-15'};
+describe('Card QR and scanning boundaries',()=>{
+ beforeEach(()=>{vi.clearAllMocks();db.query.mockReset();db.end.mockResolvedValue(undefined);db.render.mockReset();db.read.mockReset();});
+ async function ready(){const s=new CardScanService(config,bearer,cards);db.query.mockResolvedValueOnce({rows:[{safe:true}]});await s.onModuleInit();return s;}
+ it('renders identifiers only after verified card read',async()=>{const s=await ready();db.read.mockResolvedValueOnce({id,status:'active'});db.render.mockResolvedValueOnce('<svg xmlns="http://www.w3.org/2000/svg"></svg>');const r=await s.qr(req,id,branch,id,{});expect(r.payload).toBe(payload);expect(db.read).toHaveBeenCalledWith(req,id,branch,id,{});expect(db.render).toHaveBeenCalledWith(payload,{type:'svg',errorCorrectionLevel:'M',margin:4,width:320});});
+ it('does not render a revoked card',async()=>{const s=await ready();db.read.mockResolvedValueOnce({id,status:'revoked'});await expect(s.qr(req,id,branch,id,{})).rejects.toBeInstanceOf(BadRequestException);expect(db.render).not.toHaveBeenCalled();});
+ it('maps renderer failure safely',async()=>{const s=await ready();db.read.mockResolvedValueOnce({id,status:'active'});db.render.mockRejectedValueOnce(new Error('private'));await expect(s.qr(req,id,branch,id,{})).rejects.toBeInstanceOf(ServiceUnavailableException);});
+ it('binds QR card to route and returns public attendance fields',async()=>{const s=await ready();db.query.mockResolvedValueOnce({rows:[{...row,actor_snapshot:{private:true}}]});const r=await s.scan(req,id,branch,{payload,requestId:id});expect(db.query.mock.calls.at(-1)![1]).toEqual([Buffer.alloc(32),id,branch,id,id]);expect(r.id).toBe(id);expect(r).not.toHaveProperty('actor_snapshot');});
+ it.each([{},null,[],{payload,requestId:'bad'},{payload:'bad',requestId:id},{payload,requestId:id,memberId:id},{payload:'GP2'+payload.slice(3),requestId:id}])('rejects malformed scan body %j',async(body)=>{const s=await ready();await expect(s.scan(req,id,branch,body)).rejects.toBeInstanceOf(BadRequestException);expect(db.query).toHaveBeenCalledTimes(1);});
+ it('rejects QR tenant mismatch',async()=>{const s=await ready();await expect(s.scan(req,id,branch,{payload:`GP1:${branch}:${branch}:${id}`,requestId:id})).rejects.toBeInstanceOf(ForbiddenException);});
+ it('rejects QR branch mismatch',async()=>{const s=await ready();await expect(s.scan(req,id,branch,{payload:`GP1:${id}:${id}:${id}`,requestId:id})).rejects.toBeInstanceOf(ForbiddenException);});
+ it('rejects missing session',async()=>{const s=await ready();await expect(s.scan({}as GymProAuthenticatedRequest,id,branch,{payload,requestId:id})).rejects.toBeInstanceOf(UnauthorizedException);});
+ it('rejects before startup',async()=>{const s=new CardScanService(config,bearer,cards);await expect(s.scan(req,id,branch,{payload,requestId:id})).rejects.toBeInstanceOf(ServiceUnavailableException);});
+ it('rejects unsafe startup',async()=>{const s=new CardScanService(config,bearer,cards);db.query.mockResolvedValueOnce({rows:[{safe:false}]});await expect(s.onModuleInit()).rejects.toThrow();});
+ it.each([{code:'28000',message:'Invalid or expired session',type:UnauthorizedException},{code:'42501',message:'Card scan access denied',type:ForbiddenException},{code:'42501',message:'Attendance access denied',type:ForbiddenException},{code:'22023',message:'private',type:BadRequestException},{code:'08006',message:'private',type:ServiceUnavailableException}])('maps database failure $code safely',async(e)=>{const s=await ready();db.query.mockRejectedValueOnce(e);await expect(s.scan(req,id,branch,{payload,requestId:id})).rejects.toBeInstanceOf(e.type);});
+ it.each([{...row,tenant_id:branch},{...row,branch_id:id},{...row,request_id:branch},{...row,checked_in_at:new Date('invalid')},{...row,business_date:'2026-02-30'}])('rejects mismatched attendance receipt',async(r)=>{const s=await ready();db.query.mockResolvedValueOnce({rows:[r]});await expect(s.scan(req,id,branch,{payload,requestId:id})).rejects.toBeInstanceOf(ServiceUnavailableException);});
+ it('closes pool and blocks scanning',async()=>{const s=await ready();await s.onModuleDestroy();expect(db.end).toHaveBeenCalledOnce();await expect(s.scan(req,id,branch,{payload,requestId:id})).rejects.toBeInstanceOf(ServiceUnavailableException);});
+});
