@@ -1,0 +1,12 @@
+{
+  "baseline": "recovered-schema-20261016",
+  "sha256": "24765f818899517aaaa79e39fe7269aae201bcaf774ea4faeff3a8948327ce06",
+  "tables": 36,
+  "securityFunctions": 64,
+  "forcedRlsTables": 28,
+  "containsTableData": false,
+  "existingClusterRolesRequired": true,
+  "freshClusterRolesVerified": false,
+  "seedDataInstalled": false,
+  "productionReady": false
+}

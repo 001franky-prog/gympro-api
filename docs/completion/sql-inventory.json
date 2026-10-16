@@ -1,0 +1,2022 @@
+{
+  "step": "Batch 1B SQL inventory",
+  "inventoryCompleted": true,
+  "automaticExecutionAllowed": false,
+  "installationOrderValidated": false,
+  "cleanInstallVerified": false,
+  "migrationLedgerInstalled": false,
+  "kbzPayDeferred": true,
+  "files": [
+    {
+      "file": "sql/a-f6-13-1-rbac-rules.sql",
+      "sha256": "23a674897334e9edccbe9739b9ff1f6e5bbdc3e3829114024aaef3ac2d1f998f",
+      "bytes": 2021,
+      "category": "manual-classification",
+      "createdTables": [],
+      "functions": [],
+      "flags": [
+        "psql-other-meta"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/a-f6-13-rbac-inspection.sql",
+      "sha256": "009cca2c205c056f1269db230197b2a1ae2ac27472cee881ed6307f65e522890",
+      "bytes": 3824,
+      "category": "inspection-candidate",
+      "createdTables": [],
+      "functions": [],
+      "flags": [
+        "psql-other-meta"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/a-f6-14-rbac-resolver.sql",
+      "sha256": "47fa77c1d840bb4d465bc707373c626929e721546e81626cffc0a1dc92358c15",
+      "bytes": 11355,
+      "category": "manual-classification",
+      "createdTables": [],
+      "functions": [
+        "security.has_tenant_permission"
+      ],
+      "flags": [
+        "psql-other-meta",
+        "explicit-commit",
+        "explicit-transaction",
+        "role-or-grant-change",
+        "dynamic-sql-present",
+        "uuid-literals-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/a-f6-18-1-rbac-eligibility.sql",
+      "sha256": "1bf4efa41b314b275244d9f859bd62c71af5b23c4ca95bb3fc9bf0f2131b98c1",
+      "bytes": 4441,
+      "category": "manual-classification",
+      "createdTables": [],
+      "functions": [],
+      "flags": [
+        "psql-other-meta"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/a-f6-18-2-rbac-positive.sql",
+      "sha256": "dd989e8877e384996f3b5567156f8e910f82cc01604c6039d1f10ee704b73096",
+      "bytes": 6251,
+      "category": "verification-candidate",
+      "createdTables": [],
+      "functions": [],
+      "flags": [
+        "psql-other-meta",
+        "rollback-present",
+        "explicit-transaction",
+        "data-mutation-present",
+        "dynamic-sql-present",
+        "uuid-literals-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/a-f6-18-rbac-integration.sql",
+      "sha256": "6c3d719cc1a796c741eabca3cd781def545c9aaed17bcc03b40d1b1753f8a368",
+      "bytes": 7937,
+      "category": "manual-classification",
+      "createdTables": [],
+      "functions": [],
+      "flags": [
+        "psql-other-meta",
+        "rollback-present",
+        "role-or-grant-change",
+        "uuid-literals-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/a-f6-19-1-branch-rls-fix.sql",
+      "sha256": "e855807ea45359040981c29f6471f02dbc5736c4800e927a683d0e8a17f56a1f",
+      "bytes": 5985,
+      "category": "correction-candidate",
+      "createdTables": [],
+      "functions": [],
+      "flags": [
+        "psql-other-meta",
+        "explicit-commit",
+        "explicit-transaction",
+        "role-or-grant-change"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/a-f6-19-branch-rls-diagnostic.sql",
+      "sha256": "e90afd8dcba13b996dd55a1c12806a100c8ab84be49703dc1f825e460edac6f4",
+      "bytes": 3448,
+      "category": "inspection-candidate",
+      "createdTables": [],
+      "functions": [],
+      "flags": [
+        "psql-other-meta",
+        "rollback-present",
+        "role-or-grant-change"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/a-f6-2-session-boundary.sql",
+      "sha256": "4c188891aa29e612ebc58933fdf4e7e27339f7d572a979b198447fa97dc83f5a",
+      "bytes": 6280,
+      "category": "manual-classification",
+      "createdTables": [],
+      "functions": [],
+      "flags": [
+        "role-or-grant-change",
+        "dynamic-sql-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/a-f6-20-session-lifecycle.sql",
+      "sha256": "0d5a1e567a46fa57587f00cf65bddf7b883dcd38da4cc3c8f3b7e34d0dbd04c6",
+      "bytes": 8712,
+      "category": "manual-classification",
+      "createdTables": [],
+      "functions": [],
+      "flags": [
+        "psql-other-meta",
+        "rollback-present",
+        "explicit-transaction",
+        "data-mutation-present",
+        "role-or-grant-change",
+        "dynamic-sql-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/a-f6-21-session-activation.sql",
+      "sha256": "6c0bf45cf5b5a8933b9afebddfccbe250ae887b74cbaac715f28c47513c8c16e",
+      "bytes": 6536,
+      "category": "manual-classification",
+      "createdTables": [],
+      "functions": [],
+      "flags": [
+        "psql-other-meta",
+        "explicit-commit",
+        "explicit-transaction",
+        "role-or-grant-change",
+        "dynamic-sql-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/a-f6-25-session-revocation.sql",
+      "sha256": "46f97445dbedb7fc63e4ea96dffe068ec02c59e372e7cb59c11aba4f2bbf62bc",
+      "bytes": 8306,
+      "category": "manual-classification",
+      "createdTables": [],
+      "functions": [
+        "security.revoke_tenant_session"
+      ],
+      "flags": [
+        "psql-other-meta",
+        "explicit-commit",
+        "explicit-transaction",
+        "data-mutation-present",
+        "role-or-grant-change",
+        "dynamic-sql-present",
+        "uuid-literals-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/a-f6-28-positive-revocation.sql",
+      "sha256": "97fc73403b260d89d3aee9896477b94e9170cb339c9d2fcc1f570cc3ccaca93c",
+      "bytes": 10106,
+      "category": "verification-candidate",
+      "createdTables": [],
+      "functions": [],
+      "flags": [
+        "psql-other-meta",
+        "rollback-present",
+        "explicit-transaction",
+        "data-mutation-present",
+        "role-or-grant-change",
+        "dynamic-sql-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/a-f6-3-session-grant-rehearsal.sql",
+      "sha256": "cf92f5999a103fded8f29d96c98ed27e255a28c0d5dfea415c62b87fa577c12b",
+      "bytes": 5779,
+      "category": "verification-candidate",
+      "createdTables": [],
+      "functions": [],
+      "flags": [
+        "psql-other-meta",
+        "rollback-present",
+        "explicit-transaction",
+        "role-or-grant-change",
+        "dynamic-sql-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/a-f6-30-test-account-readiness.sql",
+      "sha256": "932ff2fc9409cfd4fc9629a6808e1de46ee91c07a19feb0b402aa96e34c36d0f",
+      "bytes": 2896,
+      "category": "inspection-candidate",
+      "createdTables": [],
+      "functions": [],
+      "flags": [
+        "psql-other-meta",
+        "role-or-grant-change",
+        "dynamic-sql-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/a-f6-31-create-dev-login.sql",
+      "sha256": "0399ceed7f566114f463bb22468856570a170de204bbce986545d20b43746f85",
+      "bytes": 5843,
+      "category": "installation-candidate",
+      "createdTables": [],
+      "functions": [],
+      "flags": [
+        "psql-other-meta",
+        "explicit-commit",
+        "explicit-transaction",
+        "data-mutation-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/a-f6-40-role-boundary.sql",
+      "sha256": "5a6d564268806154af0eef62b2941f73c66c47880b2d87eaccdb747299f9435b",
+      "bytes": 4754,
+      "category": "manual-classification",
+      "createdTables": [],
+      "functions": [],
+      "flags": [
+        "psql-other-meta",
+        "dynamic-sql-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/a-f6-41-local-postgres.sql",
+      "sha256": "7c82d8d6a70e5e14d4124bce1bd7f01ad1942763d8d1a51877307cba1e1b957b",
+      "bytes": 1182,
+      "category": "manual-classification",
+      "createdTables": [],
+      "functions": [],
+      "flags": [
+        "psql-other-meta"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/a-f6-6-session-verification.sql",
+      "sha256": "2002324f6c1f8b6b1eeabde561d97ad897dfaeaa159365bde70450012853db57",
+      "bytes": 7533,
+      "category": "manual-classification",
+      "createdTables": [],
+      "functions": [
+        "security.verify_tenant_session"
+      ],
+      "flags": [
+        "psql-other-meta",
+        "explicit-commit",
+        "explicit-transaction",
+        "role-or-grant-change",
+        "dynamic-sql-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b2-create-members.sql",
+      "sha256": "a7db3d42159b028ad4f39ba566ab11dad37450485b8464eeb56a95a3d4266a3d",
+      "bytes": 3656,
+      "category": "installation-candidate",
+      "createdTables": [
+        "app.members"
+      ],
+      "functions": [],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "explicit-commit",
+        "explicit-transaction",
+        "role-or-grant-change"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b2-verify-members.sql",
+      "sha256": "29b312f38d9a71af7921cb1723b0904d0742217d85ed11deb1474485a880d95c",
+      "bytes": 2073,
+      "category": "verification-candidate",
+      "createdTables": [],
+      "functions": [],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "rollback-present",
+        "explicit-transaction",
+        "data-mutation-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b3-create-membership-plans.sql",
+      "sha256": "56da6dded27239aa09e5624587fa17279e26d030d9a21ab205d6f00e35d0b577",
+      "bytes": 5062,
+      "category": "installation-candidate",
+      "createdTables": [
+        "app.membership_plans",
+        "app.plan_prices"
+      ],
+      "functions": [],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "explicit-commit",
+        "explicit-transaction",
+        "role-or-grant-change"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b3-verify-membership-plans.sql",
+      "sha256": "62d187d97f2f4ff48b9a10ba7d4d68e2ca2598437337b40a30d3010796ccb1e0",
+      "bytes": 5005,
+      "category": "verification-candidate",
+      "createdTables": [],
+      "functions": [
+        "pg_temp.b3_expect_rejection"
+      ],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "rollback-present",
+        "explicit-transaction",
+        "data-mutation-present",
+        "drop-or-truncate",
+        "dynamic-sql-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b4-create-member-registration.sql",
+      "sha256": "a1bc89be512f0f69ea7cd13183e3e9a98387aa77a52fdd9604d926177af34aa4",
+      "bytes": 9047,
+      "category": "installation-candidate",
+      "createdTables": [],
+      "functions": [
+        "security.register_member"
+      ],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "explicit-commit",
+        "explicit-transaction",
+        "data-mutation-present",
+        "role-or-grant-change",
+        "dynamic-sql-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b4-inspect-registration-security.sql",
+      "sha256": "a8485557d42736c333725aa6b1a2a662a9028b00718f2fa2cf517122b79eb836",
+      "bytes": 3027,
+      "category": "inspection-candidate",
+      "createdTables": [],
+      "functions": [],
+      "flags": [
+        "psql-connect",
+        "psql-shell-or-copy",
+        "psql-other-meta"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b4-verify-member-registration.sql",
+      "sha256": "5089f0518972d9adb864d91acb89ee09ef9762bb0f2238d0765e9fb0097dfa05",
+      "bytes": 14036,
+      "category": "verification-candidate",
+      "createdTables": [],
+      "functions": [],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "rollback-present",
+        "explicit-transaction",
+        "data-mutation-present",
+        "role-or-grant-change",
+        "dynamic-sql-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b5-create-member-subscriptions.sql",
+      "sha256": "078a8beb9a376b620ff3bcff4024f58815db0bf275f6f2728a99494f7cd041b6",
+      "bytes": 17824,
+      "category": "installation-candidate",
+      "createdTables": [
+        "app.member_subscriptions"
+      ],
+      "functions": [],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "explicit-commit",
+        "explicit-transaction",
+        "role-or-grant-change",
+        "dynamic-sql-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b5-create-subscription-activation.sql",
+      "sha256": "2cbc9d04ed06ebfa503cd6bc703dfb54f129123797044b159b6e922a7293d708",
+      "bytes": 12852,
+      "category": "installation-candidate",
+      "createdTables": [],
+      "functions": [
+        "security.activate_member_subscription"
+      ],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "explicit-commit",
+        "explicit-transaction",
+        "data-mutation-present",
+        "role-or-grant-change",
+        "dynamic-sql-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b5-create-subscription-expiration-function.sql",
+      "sha256": "1c9a354bdd485958f253165809fc22baa8b9550761fa428624f8449c4e595c1a",
+      "bytes": 9518,
+      "category": "installation-candidate",
+      "createdTables": [],
+      "functions": [
+        "security.expire_member_subscription"
+      ],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "explicit-commit",
+        "explicit-transaction",
+        "data-mutation-present",
+        "role-or-grant-change",
+        "dynamic-sql-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b5-create-subscription-expirations.sql",
+      "sha256": "723f77b5d9c6ae60a3ce46c1dcc6359dbcda6404500c4683beca00bf37820638",
+      "bytes": 3706,
+      "category": "installation-candidate",
+      "createdTables": [
+        "app.subscription_expirations"
+      ],
+      "functions": [],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "explicit-commit",
+        "explicit-transaction",
+        "role-or-grant-change"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b5-create-subscription-renewal-function.sql",
+      "sha256": "cd58b1b0ea1a1ffc604f16168b2d4c8168c9fc53330c28426bf9fcc2fe67c3e1",
+      "bytes": 13449,
+      "category": "installation-candidate",
+      "createdTables": [],
+      "functions": [
+        "security.renew_member_subscription"
+      ],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "explicit-commit",
+        "explicit-transaction",
+        "data-mutation-present",
+        "role-or-grant-change",
+        "dynamic-sql-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b5-create-subscription-renewals.sql",
+      "sha256": "98f3e1055dfd08c5ceb7cb44a7ae556fbe298c3ecf266b59c5c954fcff269e47",
+      "bytes": 4828,
+      "category": "installation-candidate",
+      "createdTables": [
+        "app.subscription_renewals"
+      ],
+      "functions": [],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "explicit-commit",
+        "explicit-transaction",
+        "role-or-grant-change"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b5-create-subscription-suspension-function.sql",
+      "sha256": "a50b08a0a75652ab49e3ba903879389a305a990df738934aea58af6edc409a79",
+      "bytes": 9891,
+      "category": "installation-candidate",
+      "createdTables": [],
+      "functions": [
+        "security.suspend_member_subscription"
+      ],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "explicit-commit",
+        "explicit-transaction",
+        "data-mutation-present",
+        "role-or-grant-change",
+        "dynamic-sql-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b5-create-subscription-suspensions.sql",
+      "sha256": "1fe63cb0b9d83feaa9c4d77050cac81a8d1f4a7be16abfa6d572407982c2b13f",
+      "bytes": 3338,
+      "category": "installation-candidate",
+      "createdTables": [
+        "app.subscription_suspensions"
+      ],
+      "functions": [],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "explicit-commit",
+        "explicit-transaction",
+        "role-or-grant-change"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b5-verify-activation-rejections.sql",
+      "sha256": "866bb49708fb4a6b9577c9362abcc33dab42e4d4f77ff610d7bc50885a6da5a1",
+      "bytes": 6894,
+      "category": "verification-candidate",
+      "createdTables": [],
+      "functions": [
+        "pg_temp.b5_rejection_test"
+      ],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "rollback-present",
+        "explicit-transaction",
+        "data-mutation-present",
+        "role-or-grant-change",
+        "uuid-literals-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b5-verify-expiration-function.sql",
+      "sha256": "694cf82d4400b30340c4b16f6d5ced0bafbd71b33fe9ebb0e6eda8b4ec7dee2d",
+      "bytes": 11408,
+      "category": "verification-candidate",
+      "createdTables": [],
+      "functions": [
+        "pg_temp.b5_ef_rejected"
+      ],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "rollback-present",
+        "explicit-transaction",
+        "data-mutation-present",
+        "role-or-grant-change",
+        "uuid-literals-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b5-verify-expiration-sessions.sql",
+      "sha256": "0cd3ede3f5779573b0e52d4b9b7ef7f7b20a5a787510dcf646d6e43672140ad9",
+      "bytes": 3931,
+      "category": "verification-candidate",
+      "createdTables": [],
+      "functions": [
+        "pg_temp.b5_es_rejected"
+      ],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "rollback-present",
+        "explicit-transaction",
+        "data-mutation-present",
+        "role-or-grant-change",
+        "uuid-literals-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b5-verify-member-subscriptions.sql",
+      "sha256": "6a5776e06446fe19d0fd9d131cc80a43f44f7e0f3f8404f28c2eb7977023b878",
+      "bytes": 8428,
+      "category": "verification-candidate",
+      "createdTables": [],
+      "functions": [
+        "pg_temp.b5_expect_rejection"
+      ],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "rollback-present",
+        "explicit-transaction",
+        "data-mutation-present",
+        "uuid-literals-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b5-verify-renewal-function.sql",
+      "sha256": "e2090e300753ebc5ae0af3c2367615de720d792fae20525e6011eae9785f35e7",
+      "bytes": 9582,
+      "category": "verification-candidate",
+      "createdTables": [],
+      "functions": [
+        "pg_temp.b5_rf_rejected"
+      ],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "rollback-present",
+        "explicit-transaction",
+        "data-mutation-present",
+        "role-or-grant-change",
+        "uuid-literals-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b5-verify-renewal-lifecycle.sql",
+      "sha256": "76ace23172a76156cbe3fba5212d759b05ba47f3596fd29fae2b565c123d07de",
+      "bytes": 8795,
+      "category": "verification-candidate",
+      "createdTables": [],
+      "functions": [
+        "pg_temp.b5_rl_rejected"
+      ],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "rollback-present",
+        "explicit-transaction",
+        "data-mutation-present",
+        "role-or-grant-change",
+        "uuid-literals-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b5-verify-renewal-permission.sql",
+      "sha256": "df150e7afda3bc50ffffa0ca1797b3d620f1237640617a6333cd5c7777261a30",
+      "bytes": 4105,
+      "category": "verification-candidate",
+      "createdTables": [],
+      "functions": [],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "rollback-present",
+        "explicit-transaction",
+        "data-mutation-present",
+        "role-or-grant-change",
+        "uuid-literals-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b5-verify-subscription-activation.sql",
+      "sha256": "989003efe7040b009ada7a5ebdc0a2fd0e26eb42ee757c9276b297e3542aefde",
+      "bytes": 12976,
+      "category": "verification-candidate",
+      "createdTables": [],
+      "functions": [
+        "pg_temp.b5_activation_rejected"
+      ],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "rollback-present",
+        "explicit-transaction",
+        "data-mutation-present",
+        "role-or-grant-change",
+        "uuid-literals-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b5-verify-subscription-expirations.sql",
+      "sha256": "1254451dba3fc5c9c9ea0d98a58ebf0f2496da55c28d6742dc16283e84ee7dc4",
+      "bytes": 6265,
+      "category": "verification-candidate",
+      "createdTables": [],
+      "functions": [
+        "pg_temp.b5_eh_rejected"
+      ],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "rollback-present",
+        "explicit-transaction",
+        "data-mutation-present",
+        "uuid-literals-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b5-verify-subscription-renewals.sql",
+      "sha256": "04e2ab7de44c8d7db35076a00b725db9f56ac4f0c484029f66336a4c83001919",
+      "bytes": 7248,
+      "category": "verification-candidate",
+      "createdTables": [],
+      "functions": [
+        "pg_temp.b5_renewal_rejected"
+      ],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "rollback-present",
+        "explicit-transaction",
+        "data-mutation-present",
+        "uuid-literals-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b5-verify-subscription-suspensions.sql",
+      "sha256": "43e58b9425215c4219d0f9eac55ed8961c8c1b2a07c6300d4cd536ff8de8afc2",
+      "bytes": 6568,
+      "category": "verification-candidate",
+      "createdTables": [],
+      "functions": [
+        "pg_temp.b5_sh_rejected"
+      ],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "rollback-present",
+        "explicit-transaction",
+        "data-mutation-present",
+        "uuid-literals-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b5-verify-suspension-function.sql",
+      "sha256": "b218dcff5e182ee40599d746c85791dbf4fd47ba488ea22bf43bfa6655c7786c",
+      "bytes": 10890,
+      "category": "verification-candidate",
+      "createdTables": [],
+      "functions": [
+        "pg_temp.b5_sf_rejected"
+      ],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "rollback-present",
+        "explicit-transaction",
+        "data-mutation-present",
+        "role-or-grant-change",
+        "uuid-literals-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b5-verify-suspension-rejections.sql",
+      "sha256": "93453b03e5ed02b059e801341578337e5ba633c75fa8216bf3b1bd5d801e41ad",
+      "bytes": 5268,
+      "category": "verification-candidate",
+      "createdTables": [],
+      "functions": [
+        "pg_temp.b5_sr_rejected"
+      ],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "rollback-present",
+        "explicit-transaction",
+        "data-mutation-present",
+        "role-or-grant-change",
+        "uuid-literals-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b6-create-foc-grant-function.sql",
+      "sha256": "9b21a63332f9cca39c81faf61c9c6303809ce78d276ae745c73e5941b65da1b7",
+      "bytes": 13156,
+      "category": "installation-candidate",
+      "createdTables": [],
+      "functions": [
+        "security.grant_foc_membership"
+      ],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "explicit-commit",
+        "explicit-transaction",
+        "data-mutation-present",
+        "role-or-grant-change",
+        "dynamic-sql-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b6-create-foc-memberships.sql",
+      "sha256": "62079186e6633b443dab4be87e332480864e3195c07de6c4a5244043672a5ef8",
+      "bytes": 5441,
+      "category": "installation-candidate",
+      "createdTables": [
+        "app.subscription_foc_grants"
+      ],
+      "functions": [],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "explicit-commit",
+        "explicit-transaction",
+        "data-mutation-present",
+        "role-or-grant-change"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b6-create-member-blacklist-events.sql",
+      "sha256": "9a13d23d92d20bd4ea73b9ccdf9314b3329aa6ee67ada6452dcc043b2411aa1b",
+      "bytes": 4503,
+      "category": "installation-candidate",
+      "createdTables": [
+        "app.member_blacklist_events"
+      ],
+      "functions": [],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "explicit-commit",
+        "explicit-transaction",
+        "role-or-grant-change"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b6-create-member-blacklist-function.sql",
+      "sha256": "438cffa4d57e1b6e6403ce91bc603e5344b83b5c5448967bcc70d44af182d5d4",
+      "bytes": 11341,
+      "category": "installation-candidate",
+      "createdTables": [],
+      "functions": [
+        "security.change_member_blacklist"
+      ],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "explicit-commit",
+        "explicit-transaction",
+        "data-mutation-present",
+        "role-or-grant-change",
+        "dynamic-sql-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b6-protect-foc-renewal.sql",
+      "sha256": "a8475308aea4c779b1c7571e36aa27992901f89c776d48eddc557b6cb8884294",
+      "bytes": 7592,
+      "category": "correction-candidate",
+      "createdTables": [],
+      "functions": [],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "explicit-commit",
+        "rollback-present",
+        "explicit-transaction",
+        "data-mutation-present",
+        "dynamic-sql-present",
+        "uuid-literals-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b6-verify-blacklist-edge-cases.sql",
+      "sha256": "331b6cc9f4a234830c874e98772f65cc064390f476ca69175f429699d9939f22",
+      "bytes": 7869,
+      "category": "verification-candidate",
+      "createdTables": [],
+      "functions": [
+        "pg_temp.b6_be_call"
+      ],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "rollback-present",
+        "explicit-transaction",
+        "data-mutation-present",
+        "dynamic-sql-present",
+        "uuid-literals-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b6-verify-foc-grant-function.sql",
+      "sha256": "07e26e2da8691d19bd88a7cc63754356e1a536448e2f6f4fea26a9b968645901",
+      "bytes": 16041,
+      "category": "verification-candidate",
+      "createdTables": [],
+      "functions": [
+        "pg_temp.b6_fg_call"
+      ],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "rollback-present",
+        "explicit-transaction",
+        "data-mutation-present",
+        "dynamic-sql-present",
+        "uuid-literals-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b6-verify-foc-schema.sql",
+      "sha256": "17d7dfbb53d5177ed333c553bf616306f9e8de56716b75051a4783aabb6d6d39",
+      "bytes": 8356,
+      "category": "verification-candidate",
+      "createdTables": [],
+      "functions": [
+        "pg_temp.b6_foc_rejected"
+      ],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "rollback-present",
+        "explicit-transaction",
+        "data-mutation-present",
+        "role-or-grant-change",
+        "uuid-literals-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b6-verify-member-blacklist-events.sql",
+      "sha256": "c6f7c388e4a130267d0c27438be8398ddc60389d36767a9ea8e0a23d223acfc8",
+      "bytes": 7430,
+      "category": "verification-candidate",
+      "createdTables": [],
+      "functions": [
+        "pg_temp.b6_bh_rejected"
+      ],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "rollback-present",
+        "explicit-transaction",
+        "data-mutation-present",
+        "uuid-literals-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b6-verify-member-blacklist-function.sql",
+      "sha256": "fe37b630fed171ad4273e6fb24bd18e804fc7de6ef7a273ef5ecacae999749fc",
+      "bytes": 12414,
+      "category": "verification-candidate",
+      "createdTables": [],
+      "functions": [
+        "pg_temp.b6_bf_call"
+      ],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "rollback-present",
+        "explicit-transaction",
+        "data-mutation-present",
+        "dynamic-sql-present",
+        "uuid-literals-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b7-create-discount-calculator.sql",
+      "sha256": "c2362ceb5b0386f0c5f6d25b6811c4cda30816553a5c84df5fdd21a6f97fcfe3",
+      "bytes": 6337,
+      "category": "installation-candidate",
+      "createdTables": [],
+      "functions": [
+        "security.calculate_membership_discount"
+      ],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "explicit-commit",
+        "explicit-transaction",
+        "role-or-grant-change",
+        "dynamic-sql-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b7-create-discounted-activation.sql",
+      "sha256": "f7d513f108e6fddc41174bece540ebe557f93f3683b720fd058450e2ea94af21",
+      "bytes": 7907,
+      "category": "installation-candidate",
+      "createdTables": [],
+      "functions": [
+        "security.activate_discounted_membership"
+      ],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "explicit-commit",
+        "explicit-transaction",
+        "data-mutation-present",
+        "role-or-grant-change",
+        "dynamic-sql-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b7-create-discounted-renewal.sql",
+      "sha256": "6bcf29d8463be2fd635b68b90364bbb6bb669b2d934ade37c50296d46404162f",
+      "bytes": 8746,
+      "category": "installation-candidate",
+      "createdTables": [],
+      "functions": [
+        "security.renew_discounted_membership"
+      ],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "explicit-commit",
+        "explicit-transaction",
+        "data-mutation-present",
+        "role-or-grant-change",
+        "dynamic-sql-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b7-create-membership-discounts.sql",
+      "sha256": "9be0eaa5fb8d78d3e8c62f1bf345d7a629fdf992b7b7f2750998164f47b156aa",
+      "bytes": 4977,
+      "category": "installation-candidate",
+      "createdTables": [
+        "app.membership_discounts"
+      ],
+      "functions": [],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "explicit-commit",
+        "explicit-transaction",
+        "role-or-grant-change"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b7-create-membership-promotions.sql",
+      "sha256": "30659c81668eb95d6d605f0657d637ae66a036e9a38f641ba755e2d65bb796a7",
+      "bytes": 5456,
+      "category": "installation-candidate",
+      "createdTables": [
+        "app.membership_promotions"
+      ],
+      "functions": [],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "explicit-commit",
+        "explicit-transaction",
+        "data-mutation-present",
+        "role-or-grant-change"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b7-create-promotion-function.sql",
+      "sha256": "bac8648bc99b1d68793f35999205bb331cfaf2d8a0e63909c84091933081ceb8",
+      "bytes": 9525,
+      "category": "installation-candidate",
+      "createdTables": [],
+      "functions": [
+        "security.create_membership_promotion"
+      ],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "explicit-commit",
+        "explicit-transaction",
+        "data-mutation-present",
+        "role-or-grant-change",
+        "dynamic-sql-present",
+        "uuid-literals-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b7-create-promotion-status-function.sql",
+      "sha256": "89d667f3688809c3e4e0cab4ab1a1f38484b31860e7345c38c9dbf7ee21610bb",
+      "bytes": 5741,
+      "category": "installation-candidate",
+      "createdTables": [],
+      "functions": [
+        "security.set_membership_promotion_status"
+      ],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "explicit-commit",
+        "explicit-transaction",
+        "data-mutation-present",
+        "role-or-grant-change",
+        "dynamic-sql-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b7-verify-discount-calculator.sql",
+      "sha256": "012a43d4c0a26ea674ebe51e6b83cdcd4e6c7f109e391c7b7262c6ac6408f2cc",
+      "bytes": 10165,
+      "category": "verification-candidate",
+      "createdTables": [],
+      "functions": [],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "rollback-present",
+        "explicit-transaction",
+        "data-mutation-present",
+        "role-or-grant-change",
+        "dynamic-sql-present",
+        "uuid-literals-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b7-verify-discount-lifecycle.sql",
+      "sha256": "0e55b04f0d4a696d5bc0def09c74deff118f20e1a0b8eb59ac5f8c0f9f62649a",
+      "bytes": 11021,
+      "category": "verification-candidate",
+      "createdTables": [],
+      "functions": [],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "rollback-present",
+        "explicit-transaction",
+        "data-mutation-present",
+        "role-or-grant-change",
+        "uuid-literals-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b7-verify-discounted-activation.sql",
+      "sha256": "ae46cd722a3c632cd6ba5b5c94ca78d8ad35c9150251a119e1b495f96d78f204",
+      "bytes": 11308,
+      "category": "verification-candidate",
+      "createdTables": [],
+      "functions": [],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "rollback-present",
+        "explicit-transaction",
+        "data-mutation-present",
+        "role-or-grant-change",
+        "uuid-literals-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b7-verify-discounted-renewal.sql",
+      "sha256": "5b58f12347ee4ecc7963de6c7121f357931045aaac9c6d2d12d5f807df4498da",
+      "bytes": 13228,
+      "category": "verification-candidate",
+      "createdTables": [],
+      "functions": [],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "rollback-present",
+        "explicit-transaction",
+        "data-mutation-present",
+        "role-or-grant-change",
+        "uuid-literals-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b7-verify-membership-discounts.sql",
+      "sha256": "0fd4b19e61178a9deb626d08e99e7597b98289633be633380860d1562fb50fac",
+      "bytes": 9357,
+      "category": "verification-candidate",
+      "createdTables": [],
+      "functions": [],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "rollback-present",
+        "explicit-transaction",
+        "data-mutation-present",
+        "uuid-literals-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b7-verify-membership-promotions.sql",
+      "sha256": "39ac68ce9466e208ba45e3edd54948967aa046fb2743d7fb0415025a5fc016b2",
+      "bytes": 7750,
+      "category": "verification-candidate",
+      "createdTables": [],
+      "functions": [],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "rollback-present",
+        "explicit-transaction",
+        "data-mutation-present",
+        "drop-or-truncate",
+        "uuid-literals-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b7-verify-promotion-function.sql",
+      "sha256": "7b25f2d71983105d1c712cb4d6864a59dd512cde231dd3b06bd713303876b482",
+      "bytes": 9261,
+      "category": "verification-candidate",
+      "createdTables": [],
+      "functions": [],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "rollback-present",
+        "explicit-transaction",
+        "data-mutation-present",
+        "role-or-grant-change",
+        "uuid-literals-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b7-verify-promotion-status.sql",
+      "sha256": "0982ee052357b08e8473908dcdc3611cbc6f271e7697d0a7de4150cec25a61bc",
+      "bytes": 8686,
+      "category": "verification-candidate",
+      "createdTables": [],
+      "functions": [],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "rollback-present",
+        "explicit-transaction",
+        "data-mutation-present",
+        "role-or-grant-change",
+        "uuid-literals-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b8-complete-branch-functions.sql",
+      "sha256": "4c6aa0f30594a512231b1ba8491fd1e2f6b407ca6f069748dab082d15a152794",
+      "bytes": 15434,
+      "category": "installation-candidate",
+      "createdTables": [],
+      "functions": [
+        "security.change_branch_member_blacklist",
+        "security.grant_branch_foc_membership",
+        "security.activate_branch_discounted_membership",
+        "security.renew_branch_discounted_membership",
+        "security.set_branch_membership_promotion_status"
+      ],
+      "flags": [
+        "psql-other-meta",
+        "explicit-commit",
+        "explicit-transaction",
+        "role-or-grant-change",
+        "dynamic-sql-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b8-create-branch-activation.sql",
+      "sha256": "9d203a814486c652a9c97a7292db616452db210f874ee3fb469e5becabcda191",
+      "bytes": 4056,
+      "category": "installation-candidate",
+      "createdTables": [],
+      "functions": [
+        "security.activate_branch_member_subscription"
+      ],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "explicit-commit",
+        "explicit-transaction",
+        "role-or-grant-change",
+        "dynamic-sql-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b8-create-branch-expiration.sql",
+      "sha256": "1250de5705acbd76d8de3cf41ef826c9ce45740271a1c558528516b8f3a778ac",
+      "bytes": 4786,
+      "category": "installation-candidate",
+      "createdTables": [],
+      "functions": [
+        "security.expire_branch_member_subscription"
+      ],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "explicit-commit",
+        "explicit-transaction",
+        "role-or-grant-change",
+        "dynamic-sql-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b8-create-branch-renewal.sql",
+      "sha256": "60a2d32a159fda3c00e9eb00f421b624b0502812f9460a23a9869ad350ad4a4e",
+      "bytes": 5236,
+      "category": "installation-candidate",
+      "createdTables": [],
+      "functions": [
+        "security.renew_branch_member_subscription"
+      ],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "explicit-commit",
+        "explicit-transaction",
+        "role-or-grant-change",
+        "dynamic-sql-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b8-create-branch-suspension.sql",
+      "sha256": "4adf408d85f8e0a988b0bf4f8e00938b86ad6dc4822846618a8fae1fcc5d65e6",
+      "bytes": 5153,
+      "category": "installation-candidate",
+      "createdTables": [],
+      "functions": [
+        "security.suspend_branch_member_subscription"
+      ],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "explicit-commit",
+        "explicit-transaction",
+        "role-or-grant-change",
+        "dynamic-sql-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b8-verify-branch-activation.sql",
+      "sha256": "245d5d35e954dd90b489bc643fb0b0f09fbdda4f6d747469705cfce949afb8a3",
+      "bytes": 11185,
+      "category": "verification-candidate",
+      "createdTables": [],
+      "functions": [],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "rollback-present",
+        "explicit-transaction",
+        "data-mutation-present",
+        "role-or-grant-change",
+        "uuid-literals-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b8-verify-branch-expiration.sql",
+      "sha256": "3988f4afc41a595837d5227c6a30108dabe1216c87d6e011274e0f8c41358a37",
+      "bytes": 12513,
+      "category": "verification-candidate",
+      "createdTables": [],
+      "functions": [],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "rollback-present",
+        "explicit-transaction",
+        "data-mutation-present",
+        "role-or-grant-change",
+        "uuid-literals-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b8-verify-branch-renewal.sql",
+      "sha256": "4551a75cf8a4320a5ea0a29c79bb6daf4d2b41ffa2270d0c625c53de6df088db",
+      "bytes": 11963,
+      "category": "verification-candidate",
+      "createdTables": [],
+      "functions": [],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "rollback-present",
+        "explicit-transaction",
+        "data-mutation-present",
+        "role-or-grant-change",
+        "uuid-literals-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/b8-verify-branch-suspension.sql",
+      "sha256": "ef570b64cf05e039efbca708f8cd5cc6d1268004892a23fc7d1fd43c7ed2f451",
+      "bytes": 12606,
+      "category": "verification-candidate",
+      "createdTables": [],
+      "functions": [],
+      "flags": [
+        "psql-connect",
+        "psql-other-meta",
+        "rollback-present",
+        "explicit-transaction",
+        "data-mutation-present",
+        "role-or-grant-change",
+        "uuid-literals-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/c1-install-attendance.sql",
+      "sha256": "01dc3a9594c39096f996b35260b6dd8a3c05d3526d6c985f2621ce3c53c8da46",
+      "bytes": 9206,
+      "category": "installation-candidate",
+      "createdTables": [
+        "app.attendance_visits"
+      ],
+      "functions": [
+        "security.check_in_member"
+      ],
+      "flags": [
+        "psql-other-meta",
+        "explicit-commit",
+        "explicit-transaction",
+        "data-mutation-present",
+        "role-or-grant-change",
+        "dynamic-sql-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/c2-install-checkout.sql",
+      "sha256": "27d2d4dee8b1d14a0e00943dde8371ea6c09c118770502844226411387042c8e",
+      "bytes": 6834,
+      "category": "installation-candidate",
+      "createdTables": [
+        "app.attendance_checkouts"
+      ],
+      "functions": [
+        "security.check_out_member"
+      ],
+      "flags": [
+        "psql-other-meta",
+        "explicit-commit",
+        "explicit-transaction",
+        "data-mutation-present",
+        "role-or-grant-change",
+        "dynamic-sql-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/c3-install-attendance-read.sql",
+      "sha256": "7a6f891792e91c167b91b75b01f9a034c72e5393f07e05da60923180d0c2735a",
+      "bytes": 5044,
+      "category": "installation-candidate",
+      "createdTables": [],
+      "functions": [
+        "security.read_branch_attendance"
+      ],
+      "flags": [
+        "psql-other-meta",
+        "explicit-commit",
+        "explicit-transaction",
+        "role-or-grant-change",
+        "dynamic-sql-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/c4-install-member-cards.sql",
+      "sha256": "e94e1de4c9592718da25ed5e8463d0b1646503420b84149ba0bd46aaa8ed8533",
+      "bytes": 11530,
+      "category": "installation-candidate",
+      "createdTables": [
+        "app.member_cards",
+        "app.member_card_events"
+      ],
+      "functions": [
+        "security.change_member_card",
+        "security.read_member_card"
+      ],
+      "flags": [
+        "psql-other-meta",
+        "explicit-commit",
+        "explicit-transaction",
+        "data-mutation-present",
+        "role-or-grant-change",
+        "dynamic-sql-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/c5-install-card-scan.sql",
+      "sha256": "4d338c8fde5b2e09fa2a84bc4b265d8305f7c4808a67d530287e32a0c5a828a6",
+      "bytes": 5649,
+      "category": "installation-candidate",
+      "createdTables": [
+        "app.card_scan_receipts"
+      ],
+      "functions": [
+        "security.scan_member_card"
+      ],
+      "flags": [
+        "psql-other-meta",
+        "explicit-commit",
+        "explicit-transaction",
+        "data-mutation-present",
+        "role-or-grant-change",
+        "dynamic-sql-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/c7-install-member-lookup.sql",
+      "sha256": "ede35d703e09949da8412165b10acf630661109088c19b09ff76c178c15f7ec6",
+      "bytes": 3386,
+      "category": "installation-candidate",
+      "createdTables": [],
+      "functions": [
+        "security.search_branch_members"
+      ],
+      "flags": [
+        "psql-other-meta",
+        "explicit-commit",
+        "explicit-transaction",
+        "role-or-grant-change",
+        "dynamic-sql-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/c8-install-member-card-lookup.sql",
+      "sha256": "0ae13acf6991e2ad83d4d13d1e76e2e190f8f192b81a60adfb7924e8c60907d2",
+      "bytes": 2250,
+      "category": "installation-candidate",
+      "createdTables": [],
+      "functions": [
+        "security.find_member_card"
+      ],
+      "flags": [
+        "psql-other-meta",
+        "explicit-commit",
+        "explicit-transaction",
+        "role-or-grant-change",
+        "dynamic-sql-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/c9-install-attendance-summary.sql",
+      "sha256": "33088bf5a18eb614bbebf57472d26114b0e0bea2c302cb309ee595c181973570",
+      "bytes": 3305,
+      "category": "installation-candidate",
+      "createdTables": [],
+      "functions": [
+        "security.summarize_branch_attendance"
+      ],
+      "flags": [
+        "psql-other-meta",
+        "explicit-commit",
+        "explicit-transaction",
+        "role-or-grant-change",
+        "dynamic-sql-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/d1-install-inventory-foundation.sql",
+      "sha256": "8b1b5bbab02f6820d6ec1db073a24d2b722231d4da6c3cc9f2827cc720fcd37e",
+      "bytes": 10709,
+      "category": "installation-candidate",
+      "createdTables": [
+        "app.inventory_products",
+        "app.inventory_stock_movements"
+      ],
+      "functions": [
+        "pg_temp.d1_reject"
+      ],
+      "flags": [
+        "psql-other-meta",
+        "explicit-commit",
+        "rollback-present",
+        "explicit-transaction",
+        "data-mutation-present",
+        "role-or-grant-change",
+        "drop-or-truncate",
+        "dynamic-sql-present",
+        "uuid-literals-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/d2-install-inventory-functions.sql",
+      "sha256": "b7a5bfd7b88f72d31ee232806672ffa297e58f1c6a344f239c33285fd3a6c288",
+      "bytes": 17298,
+      "category": "installation-candidate",
+      "createdTables": [
+        "app.inventory_product_events"
+      ],
+      "functions": [
+        "security.create_inventory_product",
+        "security.update_inventory_product",
+        "security.read_inventory_products",
+        "security.adjust_inventory_stock",
+        "security.read_inventory_stock"
+      ],
+      "flags": [
+        "psql-other-meta",
+        "explicit-commit",
+        "explicit-transaction",
+        "data-mutation-present",
+        "role-or-grant-change",
+        "dynamic-sql-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/d4-install-pos-sales.sql",
+      "sha256": "7c5c6b15e5cdbe321f090141559175c2f71159a0b42223b5c4a576aa3457e344",
+      "bytes": 17249,
+      "category": "installation-candidate",
+      "createdTables": [
+        "app.pos_sales",
+        "app.pos_sale_items"
+      ],
+      "functions": [
+        "security.create_pos_sale",
+        "security.read_pos_sale",
+        "security.adjust_inventory_stock"
+      ],
+      "flags": [
+        "psql-other-meta",
+        "explicit-commit",
+        "explicit-transaction",
+        "data-mutation-present",
+        "role-or-grant-change",
+        "dynamic-sql-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/d5-install-pos-returns.sql",
+      "sha256": "5aef825ceedd671fcec5bae2c0fa4a9221ea3dcc0c552864ba1d3d4ce3f3ff99",
+      "bytes": 21705,
+      "category": "installation-candidate",
+      "createdTables": [
+        "app.pos_sale_returns",
+        "app.pos_sale_return_items"
+      ],
+      "functions": [
+        "security.change_pos_sale",
+        "security.read_pos_sale_return",
+        "security.read_pos_sale_return_status"
+      ],
+      "flags": [
+        "psql-other-meta",
+        "explicit-commit",
+        "explicit-transaction",
+        "data-mutation-present",
+        "role-or-grant-change",
+        "drop-or-truncate",
+        "dynamic-sql-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/d6-install-pos-history.sql",
+      "sha256": "f20356f9739aafa7148ef44c147c00a15b3be07f72a545109068248f2822ea8d",
+      "bytes": 5426,
+      "category": "installation-candidate",
+      "createdTables": [],
+      "functions": [
+        "security.read_pos_sale_history"
+      ],
+      "flags": [
+        "psql-other-meta",
+        "explicit-commit",
+        "explicit-transaction",
+        "role-or-grant-change",
+        "dynamic-sql-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/d9-install-stock-history.sql",
+      "sha256": "525ab1ea9427c214dff70f016b389a95f66feb28a4bdd9a3abab6465cf8f58c7",
+      "bytes": 7661,
+      "category": "installation-candidate",
+      "createdTables": [],
+      "functions": [
+        "security.read_inventory_stock_history"
+      ],
+      "flags": [
+        "psql-other-meta",
+        "explicit-commit",
+        "explicit-transaction",
+        "role-or-grant-change",
+        "dynamic-sql-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/e1-install-payment-foundation.sql",
+      "sha256": "9673c20d96fd4c3a584f77333b8207b72f536b56f364e273a229784e2570be18",
+      "bytes": 14626,
+      "category": "installation-candidate",
+      "createdTables": [
+        "app.payment_charges",
+        "app.payment_receipts",
+        "app.payment_reversals"
+      ],
+      "functions": [
+        "pg_temp.e1_reject"
+      ],
+      "flags": [
+        "psql-other-meta",
+        "explicit-commit",
+        "rollback-present",
+        "explicit-transaction",
+        "data-mutation-present",
+        "role-or-grant-change",
+        "drop-or-truncate",
+        "dynamic-sql-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/e2-install-payment-functions.sql",
+      "sha256": "f9f0a986cf26f24e2dd60778e638f03900a384c0b47d3ddc33a198ef1bf26a16",
+      "bytes": 18236,
+      "category": "installation-candidate",
+      "createdTables": [],
+      "functions": [
+        "security.payment_session",
+        "security.payment_charge_json",
+        "security.payment_receipt_json",
+        "security.open_payment_charge",
+        "security.record_payment_receipt",
+        "security.read_payment_charge",
+        "security.read_payment_receipt"
+      ],
+      "flags": [
+        "psql-other-meta",
+        "explicit-commit",
+        "explicit-transaction",
+        "data-mutation-present",
+        "role-or-grant-change",
+        "drop-or-truncate",
+        "dynamic-sql-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/e4-install-payment-reversals.sql",
+      "sha256": "79e2bad132bcbc8d3d2c6d22839f5870b362ab6288dc9be92d2ad5db701eaec0",
+      "bytes": 8038,
+      "category": "installation-candidate",
+      "createdTables": [],
+      "functions": [
+        "security.payment_reversal_json",
+        "security.reverse_payment_receipt",
+        "security.read_payment_reversal"
+      ],
+      "flags": [
+        "psql-other-meta",
+        "explicit-commit",
+        "explicit-transaction",
+        "data-mutation-present",
+        "role-or-grant-change",
+        "drop-or-truncate",
+        "dynamic-sql-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/e5-install-payment-reporting.sql",
+      "sha256": "e26cc43bee5b111d922bfeb0b34ca13bff05d12c7907d0dac126bcc42c889313",
+      "bytes": 9882,
+      "category": "installation-candidate",
+      "createdTables": [],
+      "functions": [
+        "security.read_payment_history",
+        "security.summarize_payment_collection"
+      ],
+      "flags": [
+        "psql-other-meta",
+        "explicit-commit",
+        "explicit-transaction",
+        "role-or-grant-change",
+        "dynamic-sql-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    },
+    {
+      "file": "sql/e6-install-payment-reconciliation.sql",
+      "sha256": "788966ed361d832943772e56440099d73050f7480a70ca8c7450acbc18080db2",
+      "bytes": 14208,
+      "category": "installation-candidate",
+      "createdTables": [
+        "app.payment_reconciliations"
+      ],
+      "functions": [
+        "security.payment_reconciliation_json",
+        "security.reconcile_payment_collection",
+        "security.read_payment_reconciliation"
+      ],
+      "flags": [
+        "psql-other-meta",
+        "explicit-commit",
+        "explicit-transaction",
+        "data-mutation-present",
+        "role-or-grant-change",
+        "dynamic-sql-present"
+      ],
+      "reviewStatus": "NOT_REVIEWED",
+      "approvedExecutionOrder": null
+    }
+  ],
+  "prerequisiteEvidence": [
+    {
+      "table": "platform.tenants",
+      "staticCreateCandidates": []
+    },
+    {
+      "table": "app.branches",
+      "staticCreateCandidates": []
+    },
+    {
+      "table": "app.users",
+      "staticCreateCandidates": []
+    },
+    {
+      "table": "app.tenant_memberships",
+      "staticCreateCandidates": []
+    },
+    {
+      "table": "app.roles",
+      "staticCreateCandidates": []
+    },
+    {
+      "table": "app.permissions",
+      "staticCreateCandidates": []
+    },
+    {
+      "table": "app.role_permissions",
+      "staticCreateCandidates": []
+    },
+    {
+      "table": "app.role_assignments",
+      "staticCreateCandidates": []
+    },
+    {
+      "table": "security.tenant_sessions",
+      "staticCreateCandidates": []
+    }
+  ]
+}
