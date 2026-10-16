@@ -1,0 +1,28 @@
+import {readFileSync} from 'node:fs';import vm from 'node:vm';import assert from 'node:assert/strict';import {join} from 'node:path';
+const project=process.env.GYMPRO_E6_PROJECT||process.cwd(),elements=new Map(),calls=[];const t='11111111-1111-4111-8111-111111111111',b='22222222-2222-4222-8222-222222222222',rid='33333333-3333-4333-8333-333333333333';let counter=0,fail=false,generated=0;
+const el=n=>{if(!elements.has(n))elements.set(n,{value:'',textContent:'',hidden:false,disabled:false,className:'',children:[],append(...v){this.children.push(...v)},replaceChildren(...v){this.children=v;this.textContent=''},setAttribute(){},listeners:{},addEventListener(k,f){this.listeners[k]=f;}});return elements.get(n)};
+const sandbox={document:{getElementById:el,createElement:tag=>{const n=el('generated-'+(++generated));n.tag=tag;return n}},window:{addEventListener(){}},location:{search:''},URLSearchParams,AbortSignal,Intl,Date,BigInt,JSON,console,confirm:()=>true,crypto:{randomUUID:()=>`44444444-4444-4444-8444-${String(++counter).padStart(12,'0')}`},fetch:async(path,opt)=>{calls.push({path,...opt});if(fail){fail=false;throw Error('Network lost');}let q=path==='/auth/login'?{accessToken:'memory-only'}:path==='/auth/me'?{tenantId:t}:path==='/auth/logout'?{}:opt.method==='POST'?{...JSON.parse(opt.body),id:rid,tenantId:t,requestId:JSON.parse(opt.body).requestId}:{items:[],nextCursor:null,includesTenantMemberships:true};return {ok:true,status:path==='/auth/logout'?204:200,json:async()=>q};}};
+const html=readFileSync(join(project,'web/payments/index.html'),'utf8'),js=readFileSync(join(project,'web/payments/app.js'),'utf8');assert(!/localStorage|sessionStorage|innerHTML/.test(js));for(const match of js.matchAll(/(?:bind|\$)\('([^']+)'/g))assert(html.includes(`id="${match[1]}"`),match[1]);vm.runInNewContext(js.replace(/\}\)\(\);\s*$/, 'globalThis.e7Render=display;})();'),sandbox);const fire=async(n,k='submit')=>{await el(n).listeners[k]({preventDefault(){}})};
+el('tenant').value=t;el('branch').value=b;el('email').value='test@example.com';el('password').value='test';await fire('login-form');assert.equal(el('password').value,'');assert.equal(el('workspace').disabled,false);
+el('source-id').value=rid;el('source-kind').value='pos_sale';fail=true;await fire('charge-form');assert.equal(el('pending-panel').hidden,false);const first=JSON.parse(calls.at(-1).body);await fire('retry','click');assert.deepEqual(JSON.parse(calls.at(-1).body),first);assert.equal(el('charge-id').value,rid);
+el('amount').value='20.25';el('method').value='cash';await fire('receipt-form');assert.equal(JSON.parse(calls.at(-1).body).amount,'20.25');assert.equal(el('receipt-id').value,rid);
+el('reason').value='Verification reversal';el('reversal-kind').value='void';el('refund-amount').value='999.00';await fire('reversal-form');assert(!('amount'in JSON.parse(calls.at(-1).body)));
+el('reversal-kind').value='refund';el('refund-amount').value='5.00';await fire('reversal-form');assert.equal(JSON.parse(calls.at(-1).body).amount,'5.00');
+el('date').value='2020-01-01';await fire('summary-form');assert(calls.at(-1).path.includes('daily-summary?date=2020-01-01'));
+el('from').value='2020-01-01';el('through').value='2020-01-02';await fire('history-form');assert(calls.at(-1).path.includes('fromDate=2020-01-01'));
+el('reconcile-date').value='2020-01-01';el('note').value='Daily close';for(const n of ['cash','bank_transfer','mobile_wallet','card'])el(n).value='0.00';el('cash').value='-10.00';await fire('reconcile-form');assert.equal(JSON.parse(calls.at(-1).body).declaredTotals.cash,'-10.00');assert.equal(el('reconciliation-id').value,rid);
+const text=n=>[n.textContent,...n.children.map(x=>typeof x==='object'?text(x):String(x))].join(' ');
+assert(text(el('history-result')).includes('No payment entries'));
+assert(el('summary-result').children.some(x=>x.tag==='div'));
+assert(text(el('reversal-result')).includes('Refund recorded'));
+assert(text(el('reconcile-result')).includes('Reconciliation'));
+assert(!js.includes('JSON.stringify(data,null,2)'));
+const metric={receiptCount:'2',refundCount:'1',voidCount:'1',receivedAmount:'1400.00',refundedAmount:'100.00',voidedAmount:'1000.00',netAmount:'300.00'};
+sandbox.e7Render('summary-result',{date:'2026-10-16',includesTenantMemberships:true,...metric,byMethod:[{methodCode:'cash',...metric}]});
+assert(text(el('summary-result')).includes('1,400.00 MMK'));assert(text(el('summary-result')).includes('300.00 MMK'));
+sandbox.e7Render('history-result',{fromDate:'2026-10-16',toDate:'2026-10-16',items:[{receiptId:rid,chargeId:t,eventKind:'refund',methodCode:'cash',signedAmount:'-100.00',reason:'Return test',recordedAt:'2026-10-16T06:00:00Z'}]});
+assert(text(el('history-result')).includes('-100.00 MMK'));assert(text(el('history-result')).includes('Use this receipt'));
+
+await fire('logout','click');assert.equal(el('workspace').disabled,true);assert.equal(el('receipt-result').textContent,'');
+console.log('PASS: E7 UI login, password clearing, immutable network retry, charge, collection, refund, void, history, summary, reconciliation and logout interactions.');
+if(process.env.GYMPRO_E6_BASE_URL){for(const [path,type]of [['/payments','text/html'],['/payments/app.js','application/javascript'],['/payments/style.css','text/css']]){const response=await fetch(process.env.GYMPRO_E6_BASE_URL+path);assert.equal(response.status,200);assert(response.headers.get('content-type')?.includes(type));assert.equal(response.headers.get('cache-control'),'no-store');assert(response.headers.get('content-security-policy')?.includes("connect-src 'self'"));assert((await response.text()).length>100);}console.log('PASS: E7 live assets and security headers.');}

@@ -1,3 +1,4 @@
+import {PaymentsModule} from '../payments/payments.module.js';
 import {PosModule} from '../pos/pos.module.js';
 import {InventoryModule} from '../inventory/inventory.module.js';
 import {MemberLookupModule} from '../member-lookup/member-lookup.module.js';
@@ -34,7 +35,7 @@ import { MembershipDiscountController } from './membership-discount.controller.j
 import { MembershipDiscountService } from './membership-discount.service.js';
 
 @Module({
-  imports: [PosModule, InventoryModule, AuthModule, AttendanceModule, MemberLookupModule],
+  imports: [PaymentsModule, PosModule, InventoryModule, AuthModule, AttendanceModule, MemberLookupModule],
   controllers: [
     BranchMembershipController,
     MembersController,
