@@ -1,0 +1,23 @@
+﻿{
+    "checkpoint":  "E8 payments recovery through verified E7",
+    "createdAt":  "2026-10-16T14:42:50.8523587+06:30",
+    "gitCommit":  "44cb673e38b5314178612ff3c655dfddb3bacb06",
+    "gitSubject":  "E8: preserve verified E1 payment foundation migration",
+    "sourceBundleVerified":  true,
+    "sourceCloneVerified":  true,
+    "databaseRestoreVerified":  true,
+    "forcedRlsTablesVerified":  27,
+    "restrictedRuntimeFunctionsVerified":  32,
+    "invalidSessionRejectionsVerified":  32,
+    "paymentLedgerFingerprintMatched":  true,
+    "stockAndPosAuditChecksPassed":  true,
+    "browserFixturesAbsent":  true,
+    "temporaryDatabaseRemoved":  true,
+    "testedUsingExistingClusterRoles":  true,
+    "roleRestoreOnFreshClusterTested":  false,
+    "rolesIncludePasswords":  false,
+    "authenticatedBusinessFlowsReexecuted":  false,
+    "liveDatabase":  "gympro_saas",
+    "applicationSourceChanged":  false,
+    "gitCommitPerformed":  false
+}
