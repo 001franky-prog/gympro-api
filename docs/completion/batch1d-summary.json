@@ -1,0 +1,22 @@
+﻿{
+    "batch":  "1D fresh-cluster database prerequisites",
+    "freshClusterRoleSetupVerified":  true,
+    "rolesVerified":  20,
+    "roleMemberships":  0,
+    "permissionSeedsVerified":  39,
+    "seedRetryVerified":  true,
+    "schemaReconstructionVerified":  true,
+    "tableCount":  36,
+    "securityFunctionCount":  64,
+    "roleBoundariesVerified":  true,
+    "rehearsalClusterStopped":  true,
+    "workingClusterChanged":  false,
+    "loginPasswordsInstalled":  false,
+    "tenantProvisioningInstalled":  false,
+    "migrationLedgerInstalled":  false,
+    "cleanApplicationInstallVerified":  false,
+    "productionReady":  false,
+    "postVerificationLogReadCorrected":  true,
+    "kbzPayDeferred":  true,
+    "verifiedAt":  "2026-10-16T18:25:52.5006846+06:30"
+}

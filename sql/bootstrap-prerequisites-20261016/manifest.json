@@ -1,0 +1,14 @@
+{
+  "step": "1D reviewed prerequisites",
+  "roles": 20,
+  "roleMemberships": 0,
+  "permissions": 39,
+  "schemaSha256": "24765f818899517aaaa79e39fe7269aae201bcaf774ea4faeff3a8948327ce06",
+  "files": {
+    "verify-prerequisites.sql": "d9495121ff4d6be736ae340cacf5424777fc4300f98b672b168f55024f8bea61",
+    "verify-schema.sql": "8a1919665e470bfbb61596334bff5af95cfbcbc5ab3a0553c662a3ad4c9fd4de",
+    "README.md": "6606a137d341f8b940aa5fcceada1e67d86f3ca16e845075fc807c866aa912f0",
+    "010-permissions.sql": "26d6efbf2f0c4698d2c38a81f1a2907832d8c5818cb6a1b799d8fb3de0412569",
+    "000-roles.sql": "cb12fae7477f0d2a8f5546e6ddc925cf0d418bcfd47d623fba277ace6832787c"
+  }
+}
