@@ -1,0 +1,106 @@
+{
+  "step": "E9 local simulator",
+  "passed": true,
+  "checks": [
+    {
+      "test": "decimal_precision_and_bounds",
+      "result": "PASS"
+    },
+    {
+      "test": "create_pending_demo_order",
+      "result": "PASS"
+    },
+    {
+      "test": "create_retry_immutable",
+      "result": "PASS"
+    },
+    {
+      "test": "request_reuse_conflict",
+      "result": "PASS"
+    },
+    {
+      "test": "client_state_and_currency_rejected",
+      "result": "PASS"
+    },
+    {
+      "test": "simulated_success_no_ledger",
+      "result": "PASS"
+    },
+    {
+      "test": "duplicate_event_returns_original",
+      "result": "PASS"
+    },
+    {
+      "test": "terminal_outcome_cannot_change",
+      "result": "PASS"
+    },
+    {
+      "test": "old_create_retry_preserves_pending_receipt",
+      "result": "PASS"
+    },
+    {
+      "test": "failure_and_cancellation",
+      "result": "PASS"
+    },
+    {
+      "test": "expiration_blocks_new_event",
+      "result": "PASS"
+    },
+    {
+      "test": "invalid_callback_and_unknown_order",
+      "result": "PASS"
+    },
+    {
+      "test": "clones_protect_internal_state",
+      "result": "PASS"
+    },
+    {
+      "test": "unauthenticated_orders_denied",
+      "result": "PASS"
+    },
+    {
+      "test": "cross_origin_mutation_denied",
+      "result": "PASS"
+    },
+    {
+      "test": "incorrect_password_denied",
+      "result": "PASS"
+    },
+    {
+      "test": "login_http_only_cookie",
+      "result": "PASS"
+    },
+    {
+      "test": "static_assets_csp_and_demo_labels",
+      "result": "PASS"
+    },
+    {
+      "test": "http_create_and_exact_amount",
+      "result": "PASS"
+    },
+    {
+      "test": "demo_qr_png_and_nonpayment_payload",
+      "result": "PASS"
+    },
+    {
+      "test": "concurrent_duplicate_http_events_once",
+      "result": "PASS"
+    },
+    {
+      "test": "new_event_cannot_reverse_success",
+      "result": "PASS"
+    },
+    {
+      "test": "invalid_qr_order_denied",
+      "result": "PASS"
+    },
+    {
+      "test": "logout_revokes_session",
+      "result": "PASS"
+    }
+  ],
+  "qrMode": "installed-qrcode",
+  "officialKbzPayConnected": false,
+  "liveLedgerWritten": false,
+  "verifiedAt": "2026-10-16T09:40:58.917Z"
+}
