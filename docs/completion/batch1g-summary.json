@@ -1,0 +1,21 @@
+﻿{
+    "batch":  "1G clean source with fresh database",
+    "sourceCommit":  "bcecc6f4ac3bfa3332281df0f1a8ece5adb16044",
+    "cleanDependencyInstallPassed":  true,
+    "prismaGenerationPassed":  true,
+    "buildPassed":  true,
+    "databaseIndependentTestsPassed":  1473,
+    "rootE2ePassed":  true,
+    "freshDatabaseStartupVerified":  true,
+    "provisioningAndHttpChecksPassed":  17,
+    "fixturesRemoved":  true,
+    "ownApiStopped":  true,
+    "clusterStopped":  true,
+    "legacyDatabaseSuitesPending":  3,
+    "fullOriginalSuitePassed":  false,
+    "manualBrowserAcceptance":  "not-run-in-1G",
+    "workingDatabaseChanged":  false,
+    "productionReady":  false,
+    "kbzPayDeferred":  true,
+    "verifiedAt":  "2026-10-25T13:35:18.0495118+06:30"
+}

@@ -1,0 +1,11 @@
+﻿{
+    "verified":  true,
+    "testCount":  1485,
+    "skippedTests":  0,
+    "rootE2ePassed":  true,
+    "provisioningChecks":  17,
+    "cleanInstallReport":  "C:\\Projects\\gympro-backups\\completion-batch1g-db-20261025133445_9118a6",
+    "fullSuiteReport":  "C:\\Projects\\gympro-backups\\completion-batch1h-20261025134149_631803",
+    "baselineRepairCommit":  "8686d6a972144a99ea1ea013c76edab93bed1192",
+    "note":  "Clean installation on existing Windows host; not a clean-machine or production acceptance. Unit and API environments tested separately."
+}

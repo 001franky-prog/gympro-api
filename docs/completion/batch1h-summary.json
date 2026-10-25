@@ -1,0 +1,18 @@
+﻿{
+    "batch":  "1H portable auth fixtures",
+    "fullSuitePassed":  true,
+    "passedTests":  1485,
+    "skippedTests":  0,
+    "rootE2ePassed":  true,
+    "provisioningHttpChecksPassed":  17,
+    "fixturesRemoved":  true,
+    "ownApiStopped":  true,
+    "clusterStopped":  true,
+    "workingDatabaseChanged":  false,
+    "productionReady":  false,
+    "kbzPayDeferred":  true,
+    "verifiedAt":  "2026-10-25T13:43:01.3760518+06:30",
+    "originalCleanSourceCommit":  "bcecc6f4ac3bfa3332281df0f1a8ece5adb16044",
+    "baselineRepairCommit":  "8686d6a972144a99ea1ea013c76edab93bed1192",
+    "testOverlayApplied":  true
+}
