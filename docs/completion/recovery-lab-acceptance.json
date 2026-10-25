@@ -1,0 +1,33 @@
+﻿{
+    "scope":  "Isolated local-inbox email verification and password recovery",
+    "localInbox":  "passed",
+    "resetMessageSelection":  "passed",
+    "passwordReset":  "passed",
+    "oldPasswordRejected":  "passed",
+    "newPasswordLogin":  "passed",
+    "manualEmailVerificationResult":  "Not separately captured; eligible reset-message issuance was observed in the UI",
+    "emailVerificationAutomated":  "passed",
+    "singleUseExpiryConcurrencyAutomated":  "passed",
+    "allTenantSessionRevocationAutomated":  "passed",
+    "evidence":  "User screenshots reviewed: 20261025-101819, 102457, 102732, 102904, 103428, 103541; cleanup confirmed in terminal output",
+    "fullSuitePassed":  true,
+    "passedTests":  1538,
+    "httpDatabaseChecks":  69,
+    "fixturesRemoved":  true,
+    "apiAndClusterStopped":  true,
+    "reportFolder":  "C:\\Projects\\gympro-backups\\account-recovery-lab-20261025163943_3d069e",
+    "workingDatabaseChanged":  false,
+    "productionAppSourceChanged":  false,
+    "realEmailSent":  false,
+    "productionRecoveryEnabled":  false,
+    "productionReady":  false,
+    "kbzPayDeferred":  true,
+    "remaining0toE":  [
+                          "0: controlled live migration ledger, clean-machine deployment and CI/staging",
+                          "A: production recovery mail/outbox, MFA, audit/retention and proxy/shared abuse limits",
+                          "B: member edit/history, plans/prices UI and remaining lifecycle workflows",
+                          "C: card replacement/printing, attendance corrections and device UAT",
+                          "D/E: connected checkout/payment/receipt, closing, stock operations and reconciliation exceptions"
+                      ],
+    "recordedAt":  "2026-10-25T17:09:14.5871501+06:30"
+}
