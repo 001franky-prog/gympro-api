@@ -1,0 +1,19 @@
+{
+    "checkpoint":  "First hosted build CI",
+    "repository":  "001franky-prog/gympro-api",
+    "workflow":  "Gym Pro build",
+    "runNumber":  1,
+    "testedCommit":  "eec6139f7b81c3ad2e97bb026f0f184ac656eaac",
+    "branch":  "master",
+    "conclusion":  "success",
+    "durationSeconds":  34,
+    "evidence":  "User-provided GitHub Actions screenshot reviewed",
+    "lockedDependencyInstallPassed":  true,
+    "prismaGenerationPassed":  true,
+    "buildPassed":  true,
+    "hostedDatabaseTestsVerified":  false,
+    "hostedFullSuiteVerified":  false,
+    "stagingVerified":  false,
+    "kbzPayDeferred":  true,
+    "recordedAt":  "2026-10-26T00:05:44.2261747+06:30"
+}
