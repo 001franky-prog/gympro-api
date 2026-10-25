@@ -1,0 +1,18 @@
+﻿{
+    "scope":  "Migration ledger adoption on restored copy",
+    "checksPassed":  14,
+    "exactCatalogMatch":  true,
+    "concurrentApplyOnce":  true,
+    "immutableRetry":  true,
+    "checksumDriftRejected":  true,
+    "businessFingerprintsUnchanged":  true,
+    "existingFunctionsNotReplayed":  true,
+    "absentProvisioningMetadataInstalledOnlyInCopy":  true,
+    "temporaryDatabasesRemoved":  true,
+    "workingDatabaseChanged":  false,
+    "workingLedgerInstalled":  false,
+    "productionFeaturesEnabled":  false,
+    "kbzPayDeferred":  true,
+    "reportFolder":  "C:\\Projects\\gympro-backups\\ledger-adoption-rehearsal-20261025221534_969fa1",
+    "verifiedAt":  "2026-10-25T22:16:28.8643688+06:30"
+}

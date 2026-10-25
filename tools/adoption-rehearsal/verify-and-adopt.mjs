@@ -1,0 +1,69 @@
+import {createRequire} from 'node:module';import {resolve,join} from 'node:path';import {readFileSync,writeFileSync} from 'node:fs';import {createHash,randomUUID} from 'node:crypto';import {pathToFileURL} from 'node:url';import assert from 'node:assert/strict';
+const [projectArg,target,reference,report,payload]=process.argv.slice(2),project=resolve(projectArg);
+if(!/^gympro_adopt_\d{14}_[a-f0-9]{6}$/.test(target)||!/^gympro_bootstrap_\d{14}_[a-f0-9]{6}$/.test(reference))throw Error('Invalid rehearsal database names');
+const {Client}=createRequire(join(project,'package.json'))('pg');
+const {prepare}=await import(pathToFileURL(join(project,'tools/migrations/migrate.mjs')).href);
+const manifest=JSON.parse(readFileSync(join(project,'sql/migrations/manifest.json'),'utf8').replace(/^\uFEFF/,'')),plan=prepare(project,manifest);
+assert.deepEqual(plan.migrations.map(m=>m.id),['0002_tenant_provisioning','0003_self_session_management','0004_password_change']);
+const expectedHistory=[plan.baseline,...plan.migrations].map(({position,id,sha256})=>({position,id,sha256}));
+const clients=[];const connect=async(db)=>{const c=new Client({host:'127.0.0.1',port:5432,database:db,user:'postgres',ssl:false,connectionTimeoutMillis:5000,application_name:'gympro-adoption-rehearsal'});await c.connect();await c.query("SET statement_timeout='30s';SET search_path=pg_catalog");clients.push(c);return c;};
+const checks=[];const check=async(name,fn)=>{try{await fn();checks.push({name,result:'PASS'});console.log('PASS: '+name);}catch(e){e.message=name+': '+e.message;throw e;}};
+const digest=v=>createHash('sha256').update(JSON.stringify(v)).digest('hex');
+const acl=x=>`COALESCE((SELECT jsonb_agg(jsonb_build_array(pg_get_userbyid(a.grantor),CASE WHEN a.grantee=0 THEN 'PUBLIC' ELSE pg_get_userbyid(a.grantee) END,a.privilege_type,a.is_grantable) ORDER BY a.grantor::regrole::text,a.grantee::regrole::text,a.privilege_type) FROM aclexplode(${x}) a),'[]'::jsonb)`;
+async function catalog(c){
+ const queries={
+  permissionSeeds:"SELECT id::text,module_code,resource_code,action_code,description,is_active FROM app.permissions ORDER BY id",
+  schemas:`SELECT nspname,pg_get_userbyid(nspowner) owner,${acl('nspacl')} acl FROM pg_namespace WHERE nspname IN ('app','platform','security') ORDER BY nspname`,
+  tables:`SELECT n.nspname,c.relname,pg_get_userbyid(c.relowner) owner,c.relrowsecurity,c.relforcerowsecurity,${acl('c.relacl')} acl FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname IN ('app','platform','security') AND c.relkind='r' ORDER BY 1,2`,
+  columns:`SELECT n.nspname,c.relname,a.attname,a.attnum,format_type(a.atttypid,a.atttypmod) type,a.attnotnull,a.attidentity,a.attgenerated,pg_get_expr(d.adbin,d.adrelid) default_expr,${acl('a.attacl')} acl FROM pg_attribute a JOIN pg_class c ON c.oid=a.attrelid JOIN pg_namespace n ON n.oid=c.relnamespace LEFT JOIN pg_attrdef d ON d.adrelid=c.oid AND d.adnum=a.attnum WHERE n.nspname IN ('app','platform','security') AND c.relkind='r' AND a.attnum>0 AND NOT a.attisdropped ORDER BY 1,2,4`,
+  constraints:`SELECT n.nspname,c.relname,k.conname,pg_get_constraintdef(k.oid) definition,k.convalidated FROM pg_constraint k JOIN pg_class c ON c.oid=k.conrelid JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname IN ('app','platform','security') ORDER BY 1,2,3`,
+  indexes:`SELECT schemaname,tablename,indexname,indexdef FROM pg_indexes WHERE schemaname IN ('app','platform','security') ORDER BY 1,2,3`,
+  policies:`SELECT schemaname,tablename,policyname,permissive,roles,cmd,qual,with_check FROM pg_policies WHERE schemaname IN ('app','platform','security') ORDER BY 1,2,3`,
+  functions:`SELECT p.oid::regprocedure::text identity,pg_get_userbyid(p.proowner) owner,p.prosecdef,p.provolatile,p.proparallel,p.proconfig,pg_get_functiondef(p.oid) definition,${acl('p.proacl')} acl FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname IN ('app','platform','security') ORDER BY 1`,
+  triggers:`SELECT n.nspname,c.relname,t.tgname,t.tgenabled,pg_get_triggerdef(t.oid) definition FROM pg_trigger t JOIN pg_class c ON c.oid=t.tgrelid JOIN pg_namespace n ON n.oid=c.relnamespace WHERE NOT t.tgisinternal AND n.nspname IN ('app','platform','security') ORDER BY 1,2,3`,
+  sequences:`SELECT n.nspname,c.relname,pg_get_userbyid(c.relowner) owner,s.seqstart::text,s.seqincrement::text,s.seqmax::text,s.seqmin::text,s.seqcache::text,s.seqcycle,${acl('c.relacl')} acl FROM pg_sequence s JOIN pg_class c ON c.oid=s.seqrelid JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname IN ('app','platform','security') ORDER BY 1,2`
+ };const result={};for(const [name,sql] of Object.entries(queries))result[name]=(await c.query(sql)).rows;return result;
+}
+function compare(actual,expected){const differences=[];for(const key of Object.keys(expected))if(JSON.stringify(actual[key])!==JSON.stringify(expected[key]))differences.push(key);if(differences.length)throw Error('Schema/security drift in: '+differences.join(', '));}
+async function fingerprints(c){const tables=(await c.query("SELECT n.nspname,c.relname FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname IN ('app','platform','security') AND c.relkind='r' ORDER BY 1,2")).rows;const out=[];for(const t of tables){const id='"'+t.nspname.replaceAll('"','""')+'"."'+t.relname.replaceAll('"','""')+'"';const {rows:[r]}=await c.query(`SELECT count(*)::text count,encode(sha256(convert_to(coalesce(string_agg(h,'' ORDER BY h),''),'UTF8')),'hex') fingerprint FROM (SELECT encode(sha256(convert_to(to_jsonb(x)::text,'UTF8')),'hex') h FROM ${id} x) q`);out.push({table:t.nspname+'.'+t.relname,...r});}const seq=[];for(const s of (await c.query("SELECT schemaname,sequencename FROM pg_sequences WHERE schemaname IN ('app','platform','security') ORDER BY 1,2")).rows){const id='"'+s.schemaname.replaceAll('"','""')+'"."'+s.sequencename.replaceAll('"','""')+'"';seq.push({sequence:s.schemaname+'.'+s.sequencename,...(await c.query(`SELECT last_value::text,is_called FROM ${id}`)).rows[0]});}return {tables:out,sequences:seq};}
+let expected,receiptId=randomUUID();
+async function adopt(c){
+ const identity=(await c.query('SELECT current_database() db,current_user role,inet_server_port() port')).rows[0];if(identity.db!==target||identity.role!=='postgres'||identity.port!==5432)throw Error('Adoption is restricted to the named restored rehearsal database');
+ await c.query('BEGIN');try{
+  await c.query("SELECT pg_advisory_xact_lock(hashtextextended('gympro-adoption-rehearsal',0))");
+  compare(await catalog(c),expected);
+  const exists=(await c.query("SELECT to_regclass('migration_control.ledger') IS NOT NULL present")).rows[0].present;
+  if(exists){const rows=(await c.query('SELECT position,id,sha256 FROM migration_control.ledger ORDER BY position')).rows;assert.deepEqual(rows,expectedHistory);const receipts=(await c.query('SELECT id,details FROM migration_control.adoption_receipts')).rows;assert.equal(receipts.length,1);assert.equal(receipts[0].id,receiptId);await c.query('COMMIT');return {applied:false};}
+  if((await c.query("SELECT EXISTS(SELECT 1 FROM pg_namespace WHERE nspname='migration_control') present")).rows[0].present)throw Error('Unexpected pre-existing migration_control schema');
+  await c.query('CREATE SCHEMA migration_control AUTHORIZATION postgres;REVOKE ALL ON SCHEMA migration_control FROM PUBLIC');
+  await c.query(`CREATE TABLE migration_control.ledger(position integer PRIMARY KEY CHECK(position>0),id text NOT NULL UNIQUE,sha256 text NOT NULL CHECK(sha256 ~ '^[a-f0-9]{64}$'),applied_at timestamptz NOT NULL DEFAULT clock_timestamp(),applied_by name NOT NULL DEFAULT current_user);ALTER TABLE migration_control.ledger ENABLE ROW LEVEL SECURITY;ALTER TABLE migration_control.ledger FORCE ROW LEVEL SECURITY;REVOKE ALL ON migration_control.ledger FROM PUBLIC`);
+  // Only absent migration 0002 is executed. 0003/0004 are matched against a clean reference, never replayed.
+  await c.query(plan.migrations[0].sql);
+  await c.query('CREATE TABLE migration_control.adoption_receipts(id uuid PRIMARY KEY,details jsonb NOT NULL,registered_at timestamptz NOT NULL DEFAULT clock_timestamp());ALTER TABLE migration_control.adoption_receipts ENABLE ROW LEVEL SECURITY;ALTER TABLE migration_control.adoption_receipts FORCE ROW LEVEL SECURITY;REVOKE ALL ON migration_control.adoption_receipts FROM PUBLIC');
+  for(const row of expectedHistory)await c.query('INSERT INTO migration_control.ledger(position,id,sha256) VALUES($1,$2,$3)',[row.position,row.id,row.sha256]);
+  await c.query('INSERT INTO migration_control.adoption_receipts(id,details) VALUES($1,$2)',[receiptId,JSON.stringify({registrationTimeIsNotHistoricExecutionTime:true,baseline:'adopted after exact catalog comparison','0002_tenant_provisioning':'executed now: previously absent','0003_self_session_management':'adopted existing: not replayed','0004_password_change':'adopted existing: not replayed',catalogSha256:digest(expected)})]);
+  compare(await catalog(c),expected);await c.query('COMMIT');return {applied:true};
+ }catch(e){await c.query('ROLLBACK');throw e;}
+}
+let success=false;
+try{
+ const c=await connect(target),ref=await connect(reference),other=await connect(target);expected=await catalog(ref);
+ await check('01_exact_schema_and_security_match',async()=>{compare(await catalog(c),expected);assert.equal(expected.tables.length,36);assert.equal(expected.functions.filter(x=>x.identity.startsWith('security.')).length,68);});
+ const before=await fingerprints(c);writeFileSync(join(report,'business-fingerprints-before.json'),JSON.stringify(before,null,2));
+ await check('02_ledger_and_provisioning_receipts_absent',async()=>assert.equal((await c.query("SELECT to_regclass('migration_control.ledger') IS NULL AND to_regclass('migration_control.provisioning_receipts') IS NULL absent")).rows[0].absent,true));
+ await check('03_manifest_tampering_rejected',async()=>{const tampered=structuredClone(manifest);tampered.migrations[0].sha256='0'.repeat(64);assert.throws(()=>prepare(project,tampered),/checksum/i);});
+ await check('04_catalog_drift_detected',async()=>{ await c.query('BEGIN');try{await c.query('ALTER FUNCTION security.read_own_credential(bytea) OWNER TO postgres');const drift=await catalog(c);assert.throws(()=>compare(drift,expected),/drift/);}finally{await c.query('ROLLBACK');}});
+ await check('05_concurrent_adoption_applies_once',async()=>{const results=await Promise.all([adopt(c),adopt(other)]);assert.equal(results.filter(x=>x.applied).length,1);});
+ const originalHistory=(await c.query('SELECT * FROM migration_control.ledger ORDER BY position')).rows;
+ await check('06_retry_preserves_registration_receipt',async()=>{assert.equal((await adopt(c)).applied,false);assert.deepEqual((await c.query('SELECT * FROM migration_control.ledger ORDER BY position')).rows,originalHistory);});
+ await check('07_four_manifest_entries_registered_exactly',async()=>assert.deepEqual((await c.query('SELECT position,id,sha256 FROM migration_control.ledger ORDER BY position')).rows,expectedHistory));
+ await check('08_only_absent_metadata_migration_executed',async()=>{const r=(await c.query('SELECT details FROM migration_control.adoption_receipts')).rows[0].details;assert.equal(r.registrationTimeIsNotHistoricExecutionTime,true);assert.equal((await c.query('SELECT count(*)::int n FROM migration_control.provisioning_receipts')).rows[0].n,0);});
+ await check('09_ledger_checksum_drift_rejected',async()=>{await c.query("UPDATE migration_control.ledger SET sha256=repeat('0',64) WHERE position=4");try{await assert.rejects(()=>adopt(other));}finally{await c.query('UPDATE migration_control.ledger SET sha256=$1 WHERE position=4',[expectedHistory[3].sha256]);}assert.deepEqual((await c.query('SELECT * FROM migration_control.ledger ORDER BY position')).rows,originalHistory);});
+ await check('10_runtime_metadata_access_denied',async()=>{for(const role of ['gympro_app','gympro_auth','gympro_session']){await c.query('SET ROLE '+role);try{for(const table of ['ledger','provisioning_receipts','adoption_receipts'])await assert.rejects(()=>c.query('SELECT * FROM migration_control.'+table),e=>e.code==='42501');}finally{await c.query('RESET ROLE');}}});
+ await check('11_metadata_forced_RLS_and_restricted_owner',async()=>{const rows=(await c.query("SELECT c.relname,c.relrowsecurity,c.relforcerowsecurity,pg_get_userbyid(c.relowner) owner FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='migration_control' AND c.relkind='r'")).rows;assert.equal(rows.length,3);for(const r of rows){assert.equal(r.relrowsecurity,true);assert.equal(r.relforcerowsecurity,true);assert.equal(r.owner,'postgres');}});
+ await check('12_business_content_and_sequence_values_unchanged',async()=>assert.deepEqual(await fingerprints(c),before));
+ await check('13_existing_functions_privileges_and_policies_unchanged',async()=>compare(await catalog(c),expected));
+ await check('14_unknown_session_still_rejected',async()=>{await c.query('SET ROLE gympro_auth');try{await assert.rejects(()=>c.query("SELECT security.manage_own_sessions(decode(repeat('00',32),'hex'),'list',NULL)"),e=>e.code==='28000');}finally{await c.query('RESET ROLE');}});
+ writeFileSync(join(report,'business-fingerprints-after.json'),JSON.stringify(await fingerprints(c),null,2));
+ writeFileSync(join(report,'catalog-comparison.json'),JSON.stringify({referenceDatabase:reference,restoredDatabase:target,catalogSha256:digest(expected),categories:Object.fromEntries(Object.entries(expected).map(([k,v])=>[k,v.length]))},null,2));success=true;
+}catch(e){console.error('FAIL:',e.code??'none',e.message);process.exitCode=1;}finally{await Promise.allSettled(clients.map(c=>c.end()));writeFileSync(join(report,'adoption-results.json'),JSON.stringify({success,checks,checkCount:checks.length,workingDatabaseChanged:false,onlyRestoredCopyModified:true,productionFeaturesEnabled:false},null,2));}

@@ -1,0 +1,28 @@
+﻿{
+    "scope":  "Migration ledger adoption rehearsal on restored copy",
+    "automatedChecksPassed":  14,
+    "schemaSecurityMatch":  true,
+    "businessDataAndSequencesUnchanged":  true,
+    "concurrentApplyOnce":  true,
+    "retryImmutable":  true,
+    "driftRejected":  true,
+    "temporaryDatabasesRemoved":  true,
+    "manualBrowserAcceptance":  "not applicable: database-only infrastructure rehearsal",
+    "evidence":  "User terminal output confirms all 14 checks and removal of restored/reference databases; local reports and command exit codes checked by checkpoint script.",
+    "baselineAndMigrations0003And0004":  "Adopted only in restored copy after exact comparison; no replay",
+    "migration0002":  "Previously absent metadata installed only in restored copy",
+    "workingLedgerInstalled":  false,
+    "workingDatabaseChanged":  false,
+    "productionFeaturesEnabled":  false,
+    "kbzPayDeferred":  true,
+    "catalogSha256":  "f140f1a87a95244a36b97492255eb7be75a478d82dc40d1832722f1c5dbafcba",
+    "reportFolder":  "C:\\Projects\\gympro-backups\\ledger-adoption-rehearsal-20261025221534_969fa1",
+    "remaining0toE":  [
+                          "0: controlled live ledger adoption, clean-machine deployment and CI/staging",
+                          "A: production recovery mail/outbox, MFA key custody/policy/login integration, audit rollout/coverage/retention and shared limits",
+                          "B: member detail/edit/history, plans/prices UI, resume/cancel and expiration worker",
+                          "C: card replacement/printing, attendance corrections and device UAT",
+                          "D/E: connected checkout/payment/receipt, cashier close, stocktake/transfers and reconciliation exceptions"
+                      ],
+    "recordedAt":  "2026-10-25T22:21:06.1996958+06:30"
+}
