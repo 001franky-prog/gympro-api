@@ -101,7 +101,7 @@ if($success){try{
  Copy-Item (Join-Path $report 'fresh-install-summary.json') (Join-Path $project 'docs\completion\fresh-install-summary.json') -Force
  Write-Host 'PASS: New committed-source extraction, npm ci, Prisma generation, build, full tests, root e2e and 46 HTTP/database checks passed.' -ForegroundColor Green
  Write-Host 'PASS: Temporary fixtures removed; own API and new isolated PostgreSQL cluster stopped.'
- Write-Host 'PENDING: User browser acceptance, a genuinely different Windows machine, hosted CI and staging deployment.'
+ Write-Host 'THIS RUN: Automated verification only; browser acceptance was not performed here. Consult checkpoint records for prior browser/hosted CI evidence. Separate Windows-machine verification and staging remain outside this runner.'
  Write-Host 'Reusable noninteractive entry: scripts\completion-fresh-install.ps1 -NoBrowser (requires Windows, Node 24 and PostgreSQL 18).'
 }catch{$success=$false;Write-Host ('FAIL: '+$_.Exception.Message) -ForegroundColor Red}}
 Write-Host "Reports and fresh source: $report"
