@@ -31,7 +31,7 @@ function sql(file){console.log('CHECK: '+file);run('docker',['exec','-i',contain
 let owned=false,passed=false,removed=false;
 try{
  run('docker',['pull','postgres:18'],{timeout:180000});
- run('docker',['create','--name',container,'--label','gympro.disposable-ci=true','-e','POSTGRES_HOST_AUTH_METHOD=trust','-p',`127.0.0.1:${port}:${port}`,'postgres:18','postgres','-p',String(port)]);
+ run('docker',['create','--name',container,'--label','gympro.disposable-ci=true','-e','POSTGRES_HOST_AUTH_METHOD=trust','-e','POSTGRES_INITDB_ARGS=--locale=C --encoding=UTF8','-p',`127.0.0.1:${port}:${port}`,'postgres:18','postgres','-p',String(port)]);
  owned=true;
  run('docker',['start',container]);
  let ready=false;
