@@ -1,0 +1,48 @@
+name: Gym Pro build
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Node 24 build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    env:
+      DATABASE_URL: postgresql://gympro_app@127.0.0.1:1/gympro_saas
+
+    steps:
+      - name: Check out committed source
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24.21.0'
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Generate Prisma client
+        run: npx --no-install prisma generate
+
+      - name: Build API
+        run: npm run build
+
+      - name: Verify lockfile unchanged
+        run: git diff --exit-code -- package-lock.json
