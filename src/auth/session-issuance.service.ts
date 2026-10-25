@@ -93,6 +93,8 @@ export class SessionIssuanceService {
         'Session issuance is not enabled',
       );
 
+    const credentialSnapshot = isSessionPersistenceEnabled()
+      ? await this.authDatabase.findUserCredentials(request.email.trim().toLowerCase()) : null;
     // Step 1: Authenticate password and tenant.
     const eligibility =
       await this.authenticatedEligibility.authenticateTenant(
@@ -107,6 +109,10 @@ export class SessionIssuanceService {
       );
     }
 
+    if (isSessionPersistenceEnabled() &&
+        (!credentialSnapshot?.password_hash || credentialSnapshot.user_id !== eligibility.userId)) {
+      throw new UnauthorizedException('Invalid credentials or tenant access');
+    }
     // Step 2: Recheck the active identity relationship.
     const stillAuthorized =
       await this.authDatabase.revalidateSessionIdentity(
@@ -141,9 +147,9 @@ export class SessionIssuanceService {
     // This currently throws HTTP 503 because
     // persistenceEnabled is false.
     const result =
-      await this.sessionPersistence.createSession(
-        persistenceRequest,
-      );
+      await (credentialSnapshot?.password_hash
+        ? this.sessionPersistence.createSession(persistenceRequest, credentialSnapshot.password_hash)
+        : this.sessionPersistence.createSession(persistenceRequest));
 
     // Step 5: Enforce security policy again before
     // releasing the bearer token.

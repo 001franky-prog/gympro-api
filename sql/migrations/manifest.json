@@ -30,6 +30,12 @@
                            "id":  "0003_self_session_management",
                            "file":  "sql/migrations/0003_self_session_management.sql",
                            "sha256":  "1f8a54458f3d79ef8e497c46b8b3fd83686ffc65278e307dd1a1b6a62fdfd2fb"
+                       },
+                       {
+                           "position":  4,
+                           "id":  "0004_password_change",
+                           "file":  "sql/migrations/0004_password_change.sql",
+                           "sha256":  "9cb38ece36c734037fc01e167c6ddacdf8b23de9f519ffa9389165a98cc5aba3"
                        }
                    ]
 }

@@ -62,6 +62,7 @@ export class SessionPersistenceService
 
   async createSession(
     request: AuthenticatedSessionRequest,
+    credentialHash?: string,
   ): Promise<SessionPersistenceResult> {
     const unavailable = () =>
       new ServiceUnavailableException(
@@ -92,9 +93,8 @@ export class SessionPersistenceService
     // This code path remains unreachable while
     // the security policy is disabled.
     const sessionId =
-      await this.sessionDatabase.createTenantSession(
-        request.eligibility.membershipId,
-        request.tokenHash,
+      await this.sessionDatabase.createCredentialBoundSession(
+        request.eligibility.membershipId, request.tokenHash, credentialHash,
       );
 
     // Step 5: Return only the database session ID.

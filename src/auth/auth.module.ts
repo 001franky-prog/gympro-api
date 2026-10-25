@@ -1,4 +1,7 @@
 import { Module } from '@nestjs/common';
+import { PasswordChangeService } from './password-change.service.js';
+import { PasswordCredentialDatabaseService } from './password-credential-database.service.js';
+import { PasswordChangeController } from './password-change.controller.js';
 import { SelfSessionService } from './self-session.service.js';
 import { SelfSessionController } from './self-session.controller.js';
 import { SessionAccountUiController } from './session-account-ui.controller.js';
@@ -31,11 +34,13 @@ import { SessionRevocationDatabaseService } from './session-revocation-database.
  */
 @Module({
   controllers: [
+    PasswordChangeController,
     SelfSessionController, SessionAccountUiController,
     AuthController,
   ],
 
   providers: [
+    PasswordChangeService, PasswordCredentialDatabaseService,
     SelfSessionService,
     LoginRateLimitGuard,
     ProductionAuthPolicyService,

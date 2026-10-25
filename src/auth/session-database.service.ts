@@ -3,6 +3,7 @@ import {
   OnModuleInit,
   OnModuleDestroy,
   ServiceUnavailableException,
+  UnauthorizedException,
 } from '@nestjs/common';
 
 import { ConfigService } from '@nestjs/config';
@@ -129,12 +130,13 @@ export class SessionDatabaseService
                 SELECT p.oid
                 FROM pg_catalog.pg_proc AS p
                 WHERE p.pronamespace = n.oid
-                  AND p.proname = 'create_tenant_session'
-                  AND p.pronargs = 2
+                  AND p.proname = 'create_credential_bound_session'
+                  AND p.pronargs = 3
                   AND p.proargtypes[0] =
                       'pg_catalog.uuid'::regtype
                   AND p.proargtypes[1] =
                       'pg_catalog.bytea'::regtype
+                  AND p.proargtypes[2] = 'pg_catalog.text'::regtype
                 LIMIT 1
               ) AS function_oid,
               (
@@ -227,58 +229,22 @@ export class SessionDatabaseService
    * The trusted issuance boundary must be tested
    * before changing the security policy.
    */
-  async createTenantSession(
-    membershipId: string,
-    tokenHash: Buffer,
-  ): Promise<string> {
-    const unavailable = () =>
-      new ServiceUnavailableException(
-        'Session database writes are not enabled',
-      );
-
-    const uuidPattern =
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-    if (
-      typeof membershipId !== 'string' ||
-      !uuidPattern.test(membershipId) ||
-      !Buffer.isBuffer(tokenHash) ||
-      tokenHash.length !== 32
-    ) {
-      throw unavailable();
+  async createTenantSession(_membershipId: string, _tokenHash: Buffer): Promise<string> {
+    throw new ServiceUnavailableException('Session database writes are not enabled');
+  }
+  async createCredentialBoundSession(membershipId:string,tokenHash:Buffer,credentialHash?:string):Promise<string>{
+    if(!isSessionPersistenceEnabled()||!Buffer.isBuffer(tokenHash)||tokenHash.length!==32||
+       !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(membershipId)||
+       typeof credentialHash!=='string'||!credentialHash.startsWith('$argon2id$')||credentialHash.length>512){
+      throw new ServiceUnavailableException('Credential-bound session issuance is required');
     }
-
-    if (!isSessionPersistenceEnabled()) {
-      throw unavailable();
-    }
-
-    if (!(await this.verifySessionPrivileges())) {
-      throw unavailable();
-    }
-
-    const result =
-      await this.pool.query<CreatedSessionRecord>(
-        `
-          SELECT
-            security.create_tenant_session(
-              $1::uuid,
-              $2::bytea
-            ) AS session_id
-        `,
-        [membershipId, tokenHash],
-      );
-
-    const sessionId = result.rows[0]?.session_id;
-
-    if (
-      result.rows.length !== 1 ||
-      typeof sessionId !== 'string' ||
-      !uuidPattern.test(sessionId)
-    ) {
-      throw unavailable();
-    }
-
-    return sessionId;
+    if(!await this.verifySessionPrivileges())throw new ServiceUnavailableException('Session database verification failed');
+    try{
+      const r=await this.pool.query('SELECT security.create_credential_bound_session($1::uuid,$2::bytea,$3::text) session_id',[membershipId,tokenHash,credentialHash]);
+      const id=r.rows[0]?.session_id;
+      if(r.rows.length!==1||typeof id!=='string'||!/^[0-9a-f-]{36}$/i.test(id))throw Error('Invalid session receipt');
+      return id;
+    }catch(e){if((e as {code?:string}).code==='28000')throw new UnauthorizedException('Invalid credentials or tenant access');throw new ServiceUnavailableException('Session issuance unavailable');}
   }
 
   async onModuleDestroy(): Promise<void> {
