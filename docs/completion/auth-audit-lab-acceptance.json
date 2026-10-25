@@ -1,0 +1,37 @@
+﻿{
+    "scope":  "Isolated authentication audit history",
+    "ownHistoryDisplayed":  "passed",
+    "logoutAndNewLoginEvents":  "passed",
+    "refreshDoesNotDuplicate":  "passed",
+    "initialRows":  3,
+    "rowsAfterLogoutAndLogin":  5,
+    "rowsAfterRefresh":  5,
+    "evidence":  "User screenshots 20261025-152417 and 152550 reviewed; user confirmed five rows unchanged after refresh; terminal output confirmed cleanup and stopped cluster.",
+    "fullSuitePassed":  true,
+    "passedTests":  1567,
+    "httpDatabaseChecks":  119,
+    "auditSpecificChecks":  20,
+    "fixturesRemoved":  true,
+    "apiAndClusterStopped":  true,
+    "reportFolder":  "C:\\Projects\\gympro-backups\\auth-audit-lab-20261025214627_770f4d",
+    "workingDatabaseChanged":  false,
+    "productionAppSourceChanged":  false,
+    "productionAuditEnabled":  false,
+    "productionReady":  false,
+    "kbzPayDeferred":  true,
+    "limitations":  [
+                        "Login success denotes session creation; mechanism attribution pending",
+                        "Revocation cause is generic",
+                        "Rejected-login events have no submitted identity and are private; guard-level 429/MFA/recovery denial coverage pending",
+                        "Superuser trusted; no external tamper-evident archive",
+                        "Production rollout, retention/purge/export policy and administrative visibility pending"
+                    ],
+    "remaining0toE":  [
+                          "0: controlled live migration ledger, clean-machine deployment and CI/staging",
+                          "A: production recovery mail/outbox, MFA key custody/policy/app integration, audit rollout/coverage/retention and shared limits",
+                          "B: member edit/history, plans/prices UI and remaining lifecycle workflows",
+                          "C: card replacement/printing, attendance corrections and device UAT",
+                          "D/E: connected checkout/payment/receipt, closing, stock operations and reconciliation exceptions"
+                      ],
+    "recordedAt":  "2026-10-25T21:59:58.2042111+06:30"
+}
