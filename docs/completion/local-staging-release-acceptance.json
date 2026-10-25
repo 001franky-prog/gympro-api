@@ -1,0 +1,33 @@
+{
+    "scope":  "Application-only staging release switch and rollback; application inputs identical",
+    "candidateCommit":  "238b46f2ae26481c413f5aa5b503a194344a3cf9",
+    "originalCommit":  "2b7fcc97d577bb099a4c06cf7cd3744a1acba362",
+    "automaticChecksPassed":  8,
+    "rollbackPathTestsPassed":  5,
+    "candidateBrowserChecks":  {
+                                   "signOut":  "passed",
+                                   "signIn":  "passed",
+                                   "attendanceSummary":  "passed"
+                               },
+    "originalBrowserChecks":  {
+                                  "signOut":  "passed",
+                                  "signIn":  "passed",
+                                  "attendanceSummary":  "passed"
+                              },
+    "manualAcceptanceEvidence":  "User screenshots reviewed in conversation for both browser phases.",
+    "originalSourceRestored":  true,
+    "businessSchemaDataAndSequencesUnchanged":  true,
+    "existingSessionsUnchanged":  true,
+    "newOwnerSessionsScopedAndRevoked":  true,
+    "stagingApiStopped":  true,
+    "stagingClusterStopped":  true,
+    "candidateBuildRetained":  true,
+    "databaseMigrationsApplied":  false,
+    "permissionsChanged":  false,
+    "workingDatabaseUsed":  false,
+    "migrationBearingRollbackVerified":  false,
+    "productionRecoveryMfaAuditRolloutComplete":  false,
+    "kbzPayDeferred":  true,
+    "privateReportFolder":  "C:\\Projects\\gympro-staging\\releases\\rehearsal-20261026-015641_18a923\\reports",
+    "recordedAt":  "2026-10-26T02:16:10.7435108+06:30"
+}
