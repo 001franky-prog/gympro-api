@@ -1,0 +1,19 @@
+﻿{
+    "batch":  "Self-service sessions",
+    "fullSuitePassed":  true,
+    "passedTests":  1516,
+    "skippedTests":  0,
+    "rootE2ePassed":  true,
+    "httpAndDatabaseChecksPassed":  33,
+    "fixturesRemoved":  true,
+    "ownApiStopped":  true,
+    "clusterStopped":  true,
+    "workingSchemaFunctionInstalled":  true,
+    "workingRowsChanged":  false,
+    "workingEnvironmentChanged":  false,
+    "liveMigrationLedgerAdopted":  false,
+    "browserAcceptance":  "pending",
+    "productionReady":  false,
+    "kbzPayDeferred":  true,
+    "verifiedAt":  "2026-10-25T14:51:06.0138367+06:30"
+}

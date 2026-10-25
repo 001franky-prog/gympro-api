@@ -1,4 +1,7 @@
 import { Module } from '@nestjs/common';
+import { SelfSessionService } from './self-session.service.js';
+import { SelfSessionController } from './self-session.controller.js';
+import { SessionAccountUiController } from './session-account-ui.controller.js';
 import { LoginRateLimitGuard } from './login-rate-limit.guard.js';
 import { ProductionAuthPolicyService } from './production-auth-policy.service.js';
 
@@ -28,10 +31,12 @@ import { SessionRevocationDatabaseService } from './session-revocation-database.
  */
 @Module({
   controllers: [
+    SelfSessionController, SessionAccountUiController,
     AuthController,
   ],
 
   providers: [
+    SelfSessionService,
     LoginRateLimitGuard,
     ProductionAuthPolicyService,
     TenantAuthorizationService,

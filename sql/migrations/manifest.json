@@ -24,6 +24,12 @@
                            "id":  "0002_tenant_provisioning",
                            "file":  "sql/migrations/0002_tenant_provisioning.sql",
                            "sha256":  "2353ef2b70eaca9abbd133ee89429b001d3ddda9a15e117d38611e4c546955c1"
+                       },
+                       {
+                           "position":  3,
+                           "id":  "0003_self_session_management",
+                           "file":  "sql/migrations/0003_self_session_management.sql",
+                           "sha256":  "1f8a54458f3d79ef8e497c46b8b3fd83686ffc65278e307dd1a1b6a62fdfd2fb"
                        }
                    ]
 }

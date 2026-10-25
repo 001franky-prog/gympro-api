@@ -1,0 +1,29 @@
+﻿{
+    "scope":  "Self-service sessions in current tenant membership",
+    "listThreeSessions":  "passed",
+    "revokeOneOtherSession":  "passed",
+    "revokeCurrentSessionSignsOut":  "passed",
+    "revokeOthersAutomated":  "passed",
+    "revokeOthersBrowserFinalState":  "only current session remained",
+    "revokeOthersBrowserFirstRequestCount":  "not captured; screenshot showed zero on a subsequent/no-op request",
+    "browserEvidence":  "User screenshots reviewed: 20261025-082618, 082717, 082836, 083015",
+    "fullSuitePassed":  true,
+    "passedTests":  1516,
+    "httpAndDatabaseChecks":  33,
+    "cleanupVerified":  true,
+    "automatedReport":  "C:\\Projects\\gympro-backups\\completion-auth3-20261025144556_1db56b",
+    "browserReport":  "C:\\Projects\\gympro-backups\\self-sessions-browser-20261025145320_11165a",
+    "workingSchemaFunctionInstalled":  true,
+    "workingRowsChanged":  false,
+    "liveMigrationLedgerAdopted":  false,
+    "productionReady":  false,
+    "kbzPayDeferred":  true,
+    "remaining0toE":  [
+                          "Controlled live migration-ledger adoption and clean-machine deployment",
+                          "Account password/recovery, privileged MFA and proxy/shared limits",
+                          "Membership edit/history, plans/prices UI and remaining lifecycle policy",
+                          "Card replacement/printing and attendance corrections",
+                          "Connected POS/payment checkout, receipts and closing/reconciliation workflows"
+                      ],
+    "recordedAt":  "2026-10-25T15:04:48.7908939+06:30"
+}
