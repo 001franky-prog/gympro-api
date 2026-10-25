@@ -1,0 +1,51 @@
+{
+    "scope":  "Persistent local Windows staging foundation and basic operator browser acceptance",
+    "installedSourceCommit":  "2b7fcc97d577bb099a4c06cf7cd3744a1acba362",
+    "deployment":  "Loopback only on existing Windows computer",
+    "apiPort":  3200,
+    "databasePort":  55440,
+    "fullSuitePassed":  true,
+    "passedTests":  1567,
+    "failedTests":  0,
+    "skippedTests":  0,
+    "rootE2ePassed":  true,
+    "httpDatabaseChecksPassed":  46,
+    "passwordProtectedRestrictedRoleStartupPassed":  true,
+    "encryptedDatabaseCredentialStorageVerified":  true,
+    "manualBrowserChecks":  {
+                                "signIn":  "passed",
+                                "emptyDailyAttendanceSummary":  "passed",
+                                "signOutAndDisabledControls":  "passed",
+                                "evidence":  "User browser screenshots reviewed in conversation"
+                            },
+    "stagingOwnerRetainedAcrossInstallerShutdownAndBrowserStartup":  true,
+    "apiAndDatabaseCurrentlyStopped":  true,
+    "testFixturesRemoved":  true,
+    "persistentStagingRecordsPreserved":  true,
+    "initialOwnerPermissionCount":  8,
+    "implicitFinancePosPermissionGrant":  false,
+    "workingDatabaseChanged":  false,
+    "internetHosted":  false,
+    "separateWindowsMachineVerified":  false,
+    "stagingBackupRestoreVerified":  false,
+    "deploymentUpgradeRollbackVerified":  false,
+    "broaderBusinessUiAcceptanceComplete":  false,
+    "productionRecoveryMfaAuditRolloutComplete":  false,
+    "kbzPayDeferred":  true,
+    "privateReportFolder":  "C:\\Projects\\gympro-staging\\verification",
+    "reviewedToolHashes":  [
+                               {
+                                   "file":  "scripts/install-local-staging.ps1",
+                                   "executedFileSha256":  "ba94a32611ec466946a8ca78eaee84ba8c85bcfa268c09cb5b1227fc8926089e"
+                               },
+                               {
+                                   "file":  "tools/local-staging/Start-GymPro-Local-Staging.ps1",
+                                   "executedFileSha256":  "f71bc09abc7f7c675babf916356908875e21632a47ed4fb0b3cb2489fe22cd16"
+                               },
+                               {
+                                   "file":  "tools/local-staging/provision-staging.mjs",
+                                   "executedFileSha256":  "df7542233db1e514ff44c99aa905da878242094a541eb46e649d112210fcc21c"
+                               }
+                           ],
+    "recordedAt":  "2026-10-26T01:15:39.3138035+06:30"
+}
