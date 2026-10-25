@@ -1,0 +1,21 @@
+﻿{
+    "batch":  "Authentication 2 login admission controls",
+    "fullSuitePassed":  true,
+    "passedTests":  1507,
+    "skippedTests":  0,
+    "productionModeRootE2ePassed":  true,
+    "productionStartupRejections":  3,
+    "httpChecksPassed":  21,
+    "rateLimitAndConcurrencyVerified":  true,
+    "cooldownUnitTestsPassed":  true,
+    "fixturesRemoved":  true,
+    "ownApiStopped":  true,
+    "clusterStopped":  true,
+    "workingDatabaseChanged":  false,
+    "workingEnvironmentChanged":  false,
+    "distributedRateLimitingVerified":  false,
+    "proxyTopologyVerified":  false,
+    "productionReady":  false,
+    "kbzPayDeferred":  true,
+    "verifiedAt":  "2026-10-25T14:18:03.7852250+06:30"
+}

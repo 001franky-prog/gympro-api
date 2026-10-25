@@ -1,3 +1,5 @@
+import { LoginRateLimitGuard } from './login-rate-limit.guard.js';
+
 import {
   Body,
   Controller,
@@ -63,7 +65,7 @@ import type {
  * GET  /auth/tenants/:tenantId/check
  * GET  /auth/tenants/:tenantId/permissions/members-read
  *
- * Login persistence remains disabled.
+ * Login persistence follows the explicit runtime session policy.
  */
 
 @Controller('auth')
@@ -86,6 +88,7 @@ export class AuthController {
    * trusted activation is approved and tested.
    */
   @Post('login')
+  @UseGuards(LoginRateLimitGuard)
   @HttpCode(HttpStatus.OK)
   async login(
     @Body() body: unknown,

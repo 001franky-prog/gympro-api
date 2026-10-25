@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { LoginRateLimitGuard } from './login-rate-limit.guard.js';
 import { ProductionAuthPolicyService } from './production-auth-policy.service.js';
 
 import { AuthController } from './auth.controller.js';
@@ -31,6 +32,7 @@ import { SessionRevocationDatabaseService } from './session-revocation-database.
   ],
 
   providers: [
+    LoginRateLimitGuard,
     ProductionAuthPolicyService,
     TenantAuthorizationService,
     PasswordService,

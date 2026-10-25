@@ -1,0 +1,20 @@
+﻿{
+    "scope":  "Login abuse controls",
+    "signIn":  "passed",
+    "rateLimitMessage":  "passed",
+    "signInAfterCooldown":  "passed",
+    "browserAcceptance":  "passed",
+    "browserEvidence":  "User screenshots reviewed: 20261025-075204, 075349, 075501; terminal cleanup confirmed",
+    "cleanupVerified":  true,
+    "automatedReport":  "C:\\Projects\\gympro-backups\\completion-auth2-20261025141546_9de6dd",
+    "browserReport":  "C:\\Projects\\gympro-backups\\login-abuse-browser-20261025142036_030746",
+    "fullSuitePassed":  true,
+    "passedTests":  1507,
+    "startupRejections":  3,
+    "productionAndAbuseChecks":  21,
+    "workingDatabaseChanged":  false,
+    "workingEnvironmentChanged":  false,
+    "productionReady":  false,
+    "kbzPayDeferred":  true,
+    "recordedAt":  "2026-10-25T14:27:57.2494071+06:30"
+}
