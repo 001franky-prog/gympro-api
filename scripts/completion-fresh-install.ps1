@@ -84,7 +84,10 @@ try{
 if($success){try{
  $saved=Join-Path $project 'tools\fresh-install';New-Item -ItemType Directory $saved -Force | Out-Null
  Copy-Item (Join-Path $payload 'verify-and-demo.mjs') (Join-Path $saved 'verify-and-demo.mjs') -Force
- Copy-Item $PSCommandPath (Join-Path $project 'scripts\completion-fresh-install.ps1') -Force
+ $runnerDestination = Join-Path $project 'scripts\completion-fresh-install.ps1'
+ if ([IO.Path]::GetFullPath($PSCommandPath) -ne [IO.Path]::GetFullPath($runnerDestination)) {
+     Copy-Item -LiteralPath $PSCommandPath -Destination $runnerDestination -Force
+ }
  [ordered]@{scope='Fresh committed-source installation on current Windows machine';sourceCommit=$head.Trim();gitArchiveUsed=$true;environmentFilesCopied=$false;oldDependenciesCopied=$false;lockfileUnchanged=$true;npmCiPassed=$true;prismaGenerationPassed=$true;buildPassed=$true;freshClusterBootstrapPassed=$true;fullSuitePassed=$true;passedTests=$unit.numPassedTests;skippedTests=$unit.numPendingTests;rootE2ePassed=$true;httpDatabaseChecks=46;fixturesRemoved=$true;ownApiStopped=$true;clusterStopped=$true;noBrowser=[bool]$NoBrowser;manualBrowserAcceptance='pending-user-confirmation';differentMachineVerified=$false;hostedCiVerified=$false;stagingDeploymentVerified=$false;workingDatabaseChanged=$false;productionAppSourceChanged=$false;productionFeaturesEnabled=$false;kbzPayDeferred=$true;reportFolder=$report;verifiedAt=(Get-Date -Format o)} | ConvertTo-Json | Set-Content (Join-Path $report 'fresh-install-summary.json') -Encoding UTF8
  Copy-Item (Join-Path $report 'fresh-install-summary.json') (Join-Path $project 'docs\completion\fresh-install-summary.json') -Force
  Write-Host 'PASS: New committed-source extraction, npm ci, Prisma generation, build, full tests, root e2e and 46 HTTP/database checks passed.' -ForegroundColor Green
