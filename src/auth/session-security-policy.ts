@@ -13,7 +13,8 @@
  * - Requires two explicit opt-in flags.
  *
  * Production:
- * - The development override is never accepted.
+ * - Explicit GYMPRO_SESSION_MODE=persistent required.
+ * - Development overrides are rejected at startup.
  *
  * SECURITY:
  * This feature flag is not authentication proof.
@@ -34,8 +35,8 @@ export const SESSION_SECURITY_POLICY = Object.freeze({
 } as const);
 
 /**
- * Enable persistence only for a specifically
- * authorized local development test.
+ * Enable production persistence explicitly, or retain the existing
+ * separately authorized local development opt-in.
  *
  * Both flags must match exactly.
  *
@@ -43,25 +44,14 @@ export const SESSION_SECURITY_POLICY = Object.freeze({
  * production or other runtime environments.
  */
 export function isSessionPersistenceEnabled(): boolean {
-  if (process.env.NODE_ENV !== 'development') {
-    return false;
+  if (process.env.NODE_ENV === 'production') {
+    return process.env.GYMPRO_SESSION_MODE === 'persistent' &&
+      !process.env.GYMPRO_DEV_SESSION_WRITES &&
+      !process.env.GYMPRO_DEV_SESSION_CONFIRM;
   }
-
-  if (
-    process.env.GYMPRO_DEV_SESSION_WRITES !==
-    'enabled'
-  ) {
-    return false;
-  }
-
-  if (
-    process.env.GYMPRO_DEV_SESSION_CONFIRM !==
-    'I_UNDERSTAND_THE_RISK'
-  ) {
-    return false;
-  }
-
-  return true;
+  if (process.env.NODE_ENV !== 'development') return false;
+  return process.env.GYMPRO_DEV_SESSION_WRITES === 'enabled' &&
+    process.env.GYMPRO_DEV_SESSION_CONFIRM === 'I_UNDERSTAND_THE_RISK';
 }
 
 /**

@@ -1,0 +1,18 @@
+﻿{
+    "batch":  "Production authentication 1",
+    "fullSuitePassed":  true,
+    "passedTests":  1497,
+    "skippedTests":  0,
+    "productionModeRootE2ePassed":  true,
+    "productionStartupRejections":  3,
+    "productionLoginChecksPassed":  17,
+    "fixturesRemoved":  true,
+    "ownApiStopped":  true,
+    "clusterStopped":  true,
+    "workingDatabaseChanged":  false,
+    "workingEnvironmentChanged":  false,
+    "publicDeploymentVerified":  false,
+    "productionReady":  false,
+    "kbzPayDeferred":  true,
+    "verifiedAt":  "2026-10-25T13:58:03.9949149+06:30"
+}

@@ -1,0 +1,20 @@
+﻿{
+    "scope":  "Production authentication batch 1",
+    "signIn":  "passed",
+    "emptyAttendanceSummary":  "passed",
+    "signOut":  "passed",
+    "browserAcceptance":  "passed",
+    "browserEvidence":  "Three user screenshots reviewed: 20261025-073528, 073633, 073749",
+    "cleanupVerified":  true,
+    "automatedReport":  "C:\\Projects\\gympro-backups\\completion-auth1-20261025135547_a04734",
+    "browserReport":  "C:\\Projects\\gympro-backups\\production-auth-browser-20261025140337_5b2627",
+    "fullSuitePassed":  true,
+    "passedTests":  1497,
+    "startupRejections":  3,
+    "productionLoginChecks":  17,
+    "workingDatabaseChanged":  false,
+    "workingEnvironmentChanged":  false,
+    "productionReady":  false,
+    "kbzPayDeferred":  true,
+    "recordedAt":  "2026-10-25T14:10:28.5646811+06:30"
+}

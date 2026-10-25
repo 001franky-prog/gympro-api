@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ProductionAuthPolicyService } from './production-auth-policy.service.js';
 
 import { AuthController } from './auth.controller.js';
 import { TenantAuthorizationService } from './tenant-authorization.service.js';
@@ -30,6 +31,7 @@ import { SessionRevocationDatabaseService } from './session-revocation-database.
   ],
 
   providers: [
+    ProductionAuthPolicyService,
     TenantAuthorizationService,
     PasswordService,
     AuthDatabaseService,
