@@ -1,0 +1,31 @@
+{
+    "batch":  "1F isolated tenant/admin provisioning",
+    "localTestsPassed":  7,
+    "databaseAndHttpChecksPassed":  17,
+    "atomicProvisioningVerified":  true,
+    "idempotentReceiptVerified":  true,
+    "passwordHashVerified":  true,
+    "duplicateRollbackVerified":  true,
+    "restrictedInitialPermissionsVerified":  true,
+    "concurrentRetryVerified":  true,
+    "newOwnerHttpLoginVerified":  true,
+    "logoutRevocationVerified":  true,
+    "migration0002AppliedInRehearsal":  true,
+    "fixtureCleanupPassed":  true,
+    "ownApiStopped":  true,
+    "rehearsalClusterStopped":  true,
+    "workingDatabaseChanged":  false,
+    "productionAuthenticationChanged":  false,
+    "cleanMachineApplicationInstallVerified":  false,
+    "passwordPromptValidationCorrected":  true,
+    "kbzPayDeferred":  true,
+    "verifiedAt":  "2026-10-25T13:11:00.1464300+06:30",
+    "manualBrowserAcceptance":  "passed",
+    "manualBrowserChecks":  {
+                                "signIn":  "passed",
+                                "emptyAttendanceSummary":  "passed",
+                                "signOut":  "passed",
+                                "evidence":  "User browser screenshots reviewed; cleanup confirmed in terminal output."
+                            },
+    "browserAcceptanceRecordedAt":  "2026-10-25T13:17:25.1201191+06:30"
+}

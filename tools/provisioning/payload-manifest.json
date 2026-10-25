@@ -1,0 +1,9 @@
+{
+  "files": {
+    "provision.mjs": "6b52f35e9b9bcf5cca6927788ef30326cce53af695d32d74824b48b1d2403c69",
+    "README.md": "ab65c389a25f0ab09dfd59a2c1184d630d67a6e5fb2e484aa0e590d0c27b4935",
+    "provision.test.mjs": "ac26ea5be612b8e6e11b9cd311bd82a72f23ff269f8be5f065add02adc72cb6c",
+    "verify-and-demo.mjs": "b0a4ca040f44c0ee9a32972a19a3f06187bfc66229506a6978f0638d134d8e84",
+    "0002_tenant_provisioning.sql": "2353ef2b70eaca9abbd133ee89429b001d3ddda9a15e117d38611e4c546955c1"
+  }
+}
