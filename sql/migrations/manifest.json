@@ -1,0 +1,24 @@
+{
+    "version":  1,
+    "baseline":  {
+                     "position":  1,
+                     "id":  "0001_recovered_schema_and_permissions",
+                     "sources":  [
+                                     {
+                                         "sha256":  "24765f818899517aaaa79e39fe7269aae201bcaf774ea4faeff3a8948327ce06",
+                                         "file":  "sql/baseline-20261016/schema.sql"
+                                     },
+                                     {
+                                         "sha256":  "cb12fae7477f0d2a8f5546e6ddc925cf0d418bcfd47d623fba277ace6832787c",
+                                         "file":  "sql/bootstrap-prerequisites-20261016/000-roles.sql"
+                                     },
+                                     {
+                                         "sha256":  "26d6efbf2f0c4698d2c38a81f1a2907832d8c5818cb6a1b799d8fb3de0412569",
+                                         "file":  "sql/bootstrap-prerequisites-20261016/010-permissions.sql"
+                                     }
+                                 ]
+                 },
+    "migrations":  [
+
+                   ]
+}

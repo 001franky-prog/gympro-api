@@ -1,0 +1,9 @@
+{
+  "files": {
+    "migrate.test.mjs": "d23f697c4ff49220443584b3f323337d71b893a4fcdabb6616f58b2ddce7cef8",
+    "run.mjs": "2e732d3a323a505e5bb70d6b8662e176bcb290e511a84ba588d5f4382ee866ad",
+    "migrate.mjs": "3b98738fc96bb121efc13952d6886431b50167f073e56b9686898bcb73de7988",
+    "README.md": "510088f24cb82aa61d7b4a9687750ec4a7973c0fb01fff20bfe84e2647035d04",
+    "verify-db.mjs": "79bb9ff494ff51ad8cec08265a02a80a139fba8f5441ee6e1a25fdf14e74e47e"
+  }
+}

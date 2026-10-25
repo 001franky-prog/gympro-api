@@ -1,0 +1,18 @@
+﻿{
+    "batch":  "1E isolated migration ledger",
+    "localTestsPassed":  7,
+    "databaseChecksPassed":  10,
+    "baselineRegistrationVerified":  true,
+    "immutableRetryVerified":  true,
+    "checksumAndHistoryRejectionVerified":  true,
+    "failedMigrationRollbackVerified":  true,
+    "concurrentApplyOnceVerified":  true,
+    "runtimeLedgerAccessDenied":  true,
+    "freshBootstrapReverified":  true,
+    "rehearsalClusterStopped":  true,
+    "workingDatabaseLedgerInstalled":  false,
+    "workingDatabaseChanged":  false,
+    "productionReady":  false,
+    "kbzPayDeferred":  true,
+    "verifiedAt":  "2026-10-16T18:36:44.8880427+06:30"
+}
