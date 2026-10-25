@@ -1,0 +1,19 @@
+﻿{
+    "scope":  "Controlled working database migration-ledger adoption",
+    "reviewedRepresentationPairs":  31,
+    "comparatorTestsPassed":  38,
+    "restoredCopyChecksPassed":  9,
+    "workingDatabaseChecksPassed":  9,
+    "workingLedgerInstalled":  true,
+    "metadataOnlyChange":  true,
+    "businessDataChanged":  false,
+    "businessFunctionsReplayed":  false,
+    "existingPrivilegesUnchanged":  true,
+    "businessFingerprintsUnchanged":  true,
+    "temporaryDatabasesRemoved":  true,
+    "freshBackupVerified":  true,
+    "productionFeaturesEnabled":  false,
+    "kbzPayDeferred":  true,
+    "reportFolder":  "C:\\Projects\\gympro-backups\\live-ledger-resume-20261025223922_013608",
+    "verifiedAt":  "2026-10-25T22:39:48.0432738+06:30"
+}

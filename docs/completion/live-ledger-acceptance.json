@@ -1,0 +1,39 @@
+﻿{
+    "scope":  "Controlled working database migration-ledger adoption",
+    "workingLedgerInstalled":  true,
+    "metadataOnlyChange":  true,
+    "restoredCopyChecks":  9,
+    "workingDatabaseChecks":  9,
+    "comparatorTests":  38,
+    "exactReviewedRepresentationPairs":  31,
+    "unreviewedDriftRejected":  true,
+    "businessDataChanged":  false,
+    "businessFunctionsReplayed":  false,
+    "existingPrivilegesUnchanged":  true,
+    "temporaryDatabasesRemoved":  true,
+    "freshBackupVerified":  true,
+    "manualBrowserAcceptance":  "not applicable: database metadata-only operation",
+    "evidence":  "User terminal confirms working COMMIT True, both nine-check groups and cleanup; checkpoint script verifies reports/fingerprints/source/backup hashes.",
+    "registeredMigrationIds":  [
+                                   "0001_recovered_schema_and_permissions",
+                                   "0002_tenant_provisioning",
+                                   "0003_self_session_management",
+                                   "0004_password_change"
+                               ],
+    "registrationTimeIsNotHistoricExecutionTime":  true,
+    "catalogSha256":  "f140f1a87a95244a36b97492255eb7be75a478d82dc40d1832722f1c5dbafcba",
+    "productionRecoveryEnabled":  false,
+    "productionMfaEnabled":  false,
+    "productionAuditEnabled":  false,
+    "productionReady":  false,
+    "kbzPayDeferred":  true,
+    "reportFolder":  "C:\\Projects\\gympro-backups\\live-ledger-resume-20261025223922_013608",
+    "remaining0toE":  [
+                          "0: clean-machine deployment, CI/staging and controlled future migration rollout",
+                          "A: production recovery delivery/outbox, MFA key custody/policy/login integration, audit rollout/coverage/retention and shared limits",
+                          "B: member detail/edit/history, plans/prices UI, resume/cancel and expiration worker",
+                          "C: card replacement/printing, attendance corrections and device UAT",
+                          "D/E: connected checkout/payment/receipt, cashier close, stocktake/transfers and reconciliation exceptions"
+                      ],
+    "recordedAt":  "2026-10-25T22:42:07.1351327+06:30"
+}

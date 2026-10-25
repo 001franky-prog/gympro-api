@@ -1,0 +1,10 @@
+import {readFileSync} from 'node:fs';import {test} from 'node:test';import assert from 'node:assert/strict';import {compareReviewed} from './reviewed-equivalence.mjs';
+const pairs=JSON.parse(readFileSync(new URL('./reviewed-pairs.json',import.meta.url),'utf8'));
+for(const group of ['constraints','indexes'])for(const p of pairs[group])test('exact reviewed pair: '+p.object,()=>compareReviewed({[group]:[p.left]},{[group]:[p.right]}));
+test('changed allowed status is rejected',()=>{const p=pairs.constraints[0],a=structuredClone(p.left);a.definition=a.definition.replace("'active'","'disabled'");assert.throws(()=>compareReviewed({constraints:[a]},{constraints:[p.right]}),/drift/);});
+test('constraint validation change is rejected',()=>{const p=pairs.constraints[0],a={...p.left,convalidated:false};assert.throws(()=>compareReviewed({constraints:[a]},{constraints:[p.right]}),/drift/);});
+test('phone boundary change is rejected',()=>{const p=pairs.constraints.find(p=>p.object.endsWith('chk_members_phone')),a={...p.left,definition:p.left.definition.replace('>= 7','>= 1')};assert.throws(()=>compareReviewed({constraints:[a]},{constraints:[p.right]}),/drift/);});
+test('loss of index uniqueness is rejected',()=>{const p=pairs.indexes.find(p=>p.left.indexdef.includes('UNIQUE')),a={...p.left,indexdef:p.left.indexdef.replace('UNIQUE ','')};assert.throws(()=>compareReviewed({indexes:[a]},{indexes:[p.right]}),/drift/);});
+test('removed check is rejected',()=>assert.throws(()=>compareReviewed({constraints:[]},{constraints:[pairs.constraints[0].right]}),/drift/));
+test('unreviewed parentheses changes are not generalized',()=>{const p=pairs.constraints[0],a={...p.left,definition:'('+p.left.definition+')'};assert.throws(()=>compareReviewed({constraints:[a]},{constraints:[p.right]}),/drift/);});
+test('other catalog categories remain exact',()=>assert.throws(()=>compareReviewed({functions:[{owner:'postgres'}]},{functions:[{owner:'gympro_session_owner'}]}),/drift/));

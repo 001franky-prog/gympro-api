@@ -1,0 +1,529 @@
+{
+  "constraints": [
+    {
+      "object": "app.branches.branches_status_check",
+      "left": {
+        "nspname": "app",
+        "relname": "branches",
+        "conname": "branches_status_check",
+        "definition": "CHECK (((status)::text = ANY ((ARRAY['active'::character varying, 'inactive'::character varying])::text[])))",
+        "convalidated": true
+      },
+      "right": {
+        "nspname": "app",
+        "relname": "branches",
+        "conname": "branches_status_check",
+        "definition": "CHECK (((status)::text = ANY (ARRAY[('active'::character varying)::text, ('inactive'::character varying)::text])))",
+        "convalidated": true
+      }
+    },
+    {
+      "object": "app.inventory_products.chk_inventory_products_status",
+      "left": {
+        "nspname": "app",
+        "relname": "inventory_products",
+        "conname": "chk_inventory_products_status",
+        "definition": "CHECK (((status)::text = ANY ((ARRAY['draft'::character varying, 'active'::character varying, 'inactive'::character varying])::text[])))",
+        "convalidated": true
+      },
+      "right": {
+        "nspname": "app",
+        "relname": "inventory_products",
+        "conname": "chk_inventory_products_status",
+        "definition": "CHECK (((status)::text = ANY (ARRAY[('draft'::character varying)::text, ('active'::character varying)::text, ('inactive'::character varying)::text])))",
+        "convalidated": true
+      }
+    },
+    {
+      "object": "app.inventory_stock_movements.chk_inventory_movement_kind",
+      "left": {
+        "nspname": "app",
+        "relname": "inventory_stock_movements",
+        "conname": "chk_inventory_movement_kind",
+        "definition": "CHECK (((((movement_kind)::text = 'adjustment'::text) AND (sale_id IS NULL) AND (sale_item_id IS NULL) AND (return_id IS NULL) AND (return_item_id IS NULL)) OR (((movement_kind)::text = 'sale'::text) AND (sale_id IS NOT NULL) AND (sale_item_id IS NOT NULL) AND (quantity_delta < 0) AND (return_id IS NULL) AND (return_item_id IS NULL)) OR (((movement_kind)::text = ANY ((ARRAY['refund'::character varying, 'void'::character varying])::text[])) AND (sale_id IS NOT NULL) AND (sale_item_id IS NOT NULL) AND (quantity_delta > 0) AND (return_id IS NOT NULL) AND (return_item_id IS NOT NULL))))",
+        "convalidated": true
+      },
+      "right": {
+        "nspname": "app",
+        "relname": "inventory_stock_movements",
+        "conname": "chk_inventory_movement_kind",
+        "definition": "CHECK (((((movement_kind)::text = 'adjustment'::text) AND (sale_id IS NULL) AND (sale_item_id IS NULL) AND (return_id IS NULL) AND (return_item_id IS NULL)) OR (((movement_kind)::text = 'sale'::text) AND (sale_id IS NOT NULL) AND (sale_item_id IS NOT NULL) AND (quantity_delta < 0) AND (return_id IS NULL) AND (return_item_id IS NULL)) OR (((movement_kind)::text = ANY (ARRAY[('refund'::character varying)::text, ('void'::character varying)::text])) AND (sale_id IS NOT NULL) AND (sale_item_id IS NOT NULL) AND (quantity_delta > 0) AND (return_id IS NOT NULL) AND (return_item_id IS NOT NULL))))",
+        "convalidated": true
+      }
+    },
+    {
+      "object": "app.member_blacklist_events.chk_member_blacklist_events_previous_status",
+      "left": {
+        "nspname": "app",
+        "relname": "member_blacklist_events",
+        "conname": "chk_member_blacklist_events_previous_status",
+        "definition": "CHECK (((previous_status)::text = ANY ((ARRAY['pending'::character varying, 'active'::character varying, 'inactive'::character varying, 'blacklisted'::character varying])::text[])))",
+        "convalidated": true
+      },
+      "right": {
+        "nspname": "app",
+        "relname": "member_blacklist_events",
+        "conname": "chk_member_blacklist_events_previous_status",
+        "definition": "CHECK (((previous_status)::text = ANY (ARRAY[('pending'::character varying)::text, ('active'::character varying)::text, ('inactive'::character varying)::text, ('blacklisted'::character varying)::text])))",
+        "convalidated": true
+      }
+    },
+    {
+      "object": "app.member_blacklist_events.chk_member_blacklist_events_resulting_status",
+      "left": {
+        "nspname": "app",
+        "relname": "member_blacklist_events",
+        "conname": "chk_member_blacklist_events_resulting_status",
+        "definition": "CHECK (((resulting_status)::text = ANY ((ARRAY['pending'::character varying, 'active'::character varying, 'inactive'::character varying, 'blacklisted'::character varying])::text[])))",
+        "convalidated": true
+      },
+      "right": {
+        "nspname": "app",
+        "relname": "member_blacklist_events",
+        "conname": "chk_member_blacklist_events_resulting_status",
+        "definition": "CHECK (((resulting_status)::text = ANY (ARRAY[('pending'::character varying)::text, ('active'::character varying)::text, ('inactive'::character varying)::text, ('blacklisted'::character varying)::text])))",
+        "convalidated": true
+      }
+    },
+    {
+      "object": "app.member_blacklist_events.chk_member_blacklist_events_transition",
+      "left": {
+        "nspname": "app",
+        "relname": "member_blacklist_events",
+        "conname": "chk_member_blacklist_events_transition",
+        "definition": "CHECK (((((event_type)::text = 'blacklist'::text) AND ((previous_status)::text = ANY ((ARRAY['pending'::character varying, 'active'::character varying, 'inactive'::character varying])::text[])) AND ((resulting_status)::text = 'blacklisted'::text)) OR (((event_type)::text = 'unblacklist'::text) AND ((previous_status)::text = 'blacklisted'::text) AND ((resulting_status)::text = ANY ((ARRAY['pending'::character varying, 'active'::character varying, 'inactive'::character varying])::text[])))))",
+        "convalidated": true
+      },
+      "right": {
+        "nspname": "app",
+        "relname": "member_blacklist_events",
+        "conname": "chk_member_blacklist_events_transition",
+        "definition": "CHECK (((((event_type)::text = 'blacklist'::text) AND ((previous_status)::text = ANY (ARRAY[('pending'::character varying)::text, ('active'::character varying)::text, ('inactive'::character varying)::text])) AND ((resulting_status)::text = 'blacklisted'::text)) OR (((event_type)::text = 'unblacklist'::text) AND ((previous_status)::text = 'blacklisted'::text) AND ((resulting_status)::text = ANY (ARRAY[('pending'::character varying)::text, ('active'::character varying)::text, ('inactive'::character varying)::text])))))",
+        "convalidated": true
+      }
+    },
+    {
+      "object": "app.member_blacklist_events.chk_member_blacklist_events_type",
+      "left": {
+        "nspname": "app",
+        "relname": "member_blacklist_events",
+        "conname": "chk_member_blacklist_events_type",
+        "definition": "CHECK (((event_type)::text = ANY ((ARRAY['blacklist'::character varying, 'unblacklist'::character varying])::text[])))",
+        "convalidated": true
+      },
+      "right": {
+        "nspname": "app",
+        "relname": "member_blacklist_events",
+        "conname": "chk_member_blacklist_events_type",
+        "definition": "CHECK (((event_type)::text = ANY (ARRAY[('blacklist'::character varying)::text, ('unblacklist'::character varying)::text])))",
+        "convalidated": true
+      }
+    },
+    {
+      "object": "app.member_card_events.member_card_events_event_type_check",
+      "left": {
+        "nspname": "app",
+        "relname": "member_card_events",
+        "conname": "member_card_events_event_type_check",
+        "definition": "CHECK (((event_type)::text = ANY ((ARRAY['issued'::character varying, 'revoked'::character varying])::text[])))",
+        "convalidated": true
+      },
+      "right": {
+        "nspname": "app",
+        "relname": "member_card_events",
+        "conname": "member_card_events_event_type_check",
+        "definition": "CHECK (((event_type)::text = ANY (ARRAY[('issued'::character varying)::text, ('revoked'::character varying)::text])))",
+        "convalidated": true
+      }
+    },
+    {
+      "object": "app.member_cards.member_cards_status_check",
+      "left": {
+        "nspname": "app",
+        "relname": "member_cards",
+        "conname": "member_cards_status_check",
+        "definition": "CHECK (((status)::text = ANY ((ARRAY['active'::character varying, 'revoked'::character varying])::text[])))",
+        "convalidated": true
+      },
+      "right": {
+        "nspname": "app",
+        "relname": "member_cards",
+        "conname": "member_cards_status_check",
+        "definition": "CHECK (((status)::text = ANY (ARRAY[('active'::character varying)::text, ('revoked'::character varying)::text])))",
+        "convalidated": true
+      }
+    },
+    {
+      "object": "app.member_subscriptions.chk_member_subscriptions_activation",
+      "left": {
+        "nspname": "app",
+        "relname": "member_subscriptions",
+        "conname": "chk_member_subscriptions_activation",
+        "definition": "CHECK (((((status)::text = 'pending'::text) AND (activated_at IS NULL)) OR (((status)::text = ANY ((ARRAY['active'::character varying, 'suspended'::character varying, 'expired'::character varying])::text[])) AND (starts_on IS NOT NULL) AND (ends_on IS NOT NULL) AND (activated_at IS NOT NULL) AND isfinite(activated_at))))",
+        "convalidated": true
+      },
+      "right": {
+        "nspname": "app",
+        "relname": "member_subscriptions",
+        "conname": "chk_member_subscriptions_activation",
+        "definition": "CHECK (((((status)::text = 'pending'::text) AND (activated_at IS NULL)) OR (((status)::text = ANY (ARRAY[('active'::character varying)::text, ('suspended'::character varying)::text, ('expired'::character varying)::text])) AND (starts_on IS NOT NULL) AND (ends_on IS NOT NULL) AND (activated_at IS NOT NULL) AND isfinite(activated_at))))",
+        "convalidated": true
+      }
+    },
+    {
+      "object": "app.member_subscriptions.chk_member_subscriptions_duration_unit",
+      "left": {
+        "nspname": "app",
+        "relname": "member_subscriptions",
+        "conname": "chk_member_subscriptions_duration_unit",
+        "definition": "CHECK (((duration_unit)::text = ANY ((ARRAY['days'::character varying, 'weeks'::character varying, 'months'::character varying, 'years'::character varying])::text[])))",
+        "convalidated": true
+      },
+      "right": {
+        "nspname": "app",
+        "relname": "member_subscriptions",
+        "conname": "chk_member_subscriptions_duration_unit",
+        "definition": "CHECK (((duration_unit)::text = ANY (ARRAY[('days'::character varying)::text, ('weeks'::character varying)::text, ('months'::character varying)::text, ('years'::character varying)::text])))",
+        "convalidated": true
+      }
+    },
+    {
+      "object": "app.member_subscriptions.chk_member_subscriptions_kind",
+      "left": {
+        "nspname": "app",
+        "relname": "member_subscriptions",
+        "conname": "chk_member_subscriptions_kind",
+        "definition": "CHECK (((membership_kind)::text = ANY ((ARRAY['standard'::character varying, 'foc'::character varying])::text[])))",
+        "convalidated": true
+      },
+      "right": {
+        "nspname": "app",
+        "relname": "member_subscriptions",
+        "conname": "chk_member_subscriptions_kind",
+        "definition": "CHECK (((membership_kind)::text = ANY (ARRAY[('standard'::character varying)::text, ('foc'::character varying)::text])))",
+        "convalidated": true
+      }
+    },
+    {
+      "object": "app.member_subscriptions.chk_member_subscriptions_status",
+      "left": {
+        "nspname": "app",
+        "relname": "member_subscriptions",
+        "conname": "chk_member_subscriptions_status",
+        "definition": "CHECK (((status)::text = ANY ((ARRAY['pending'::character varying, 'active'::character varying, 'suspended'::character varying, 'expired'::character varying])::text[])))",
+        "convalidated": true
+      },
+      "right": {
+        "nspname": "app",
+        "relname": "member_subscriptions",
+        "conname": "chk_member_subscriptions_status",
+        "definition": "CHECK (((status)::text = ANY (ARRAY[('pending'::character varying)::text, ('active'::character varying)::text, ('suspended'::character varying)::text, ('expired'::character varying)::text])))",
+        "convalidated": true
+      }
+    },
+    {
+      "object": "app.members.chk_members_phone",
+      "left": {
+        "nspname": "app",
+        "relname": "members",
+        "conname": "chk_members_phone",
+        "definition": "CHECK (((phone IS NULL) OR (((length((phone)::text) >= 7) AND (length((phone)::text) <= 20)) AND ((phone)::text ~ '^\\+?[0-9][0-9 ()-]*$'::text))))",
+        "convalidated": true
+      },
+      "right": {
+        "nspname": "app",
+        "relname": "members",
+        "conname": "chk_members_phone",
+        "definition": "CHECK (((phone IS NULL) OR ((length((phone)::text) >= 7) AND (length((phone)::text) <= 20) AND ((phone)::text ~ '^\\+?[0-9][0-9 ()-]*$'::text))))",
+        "convalidated": true
+      }
+    },
+    {
+      "object": "app.members.chk_members_status",
+      "left": {
+        "nspname": "app",
+        "relname": "members",
+        "conname": "chk_members_status",
+        "definition": "CHECK (((status)::text = ANY ((ARRAY['pending'::character varying, 'active'::character varying, 'inactive'::character varying, 'blacklisted'::character varying])::text[])))",
+        "convalidated": true
+      },
+      "right": {
+        "nspname": "app",
+        "relname": "members",
+        "conname": "chk_members_status",
+        "definition": "CHECK (((status)::text = ANY (ARRAY[('pending'::character varying)::text, ('active'::character varying)::text, ('inactive'::character varying)::text, ('blacklisted'::character varying)::text])))",
+        "convalidated": true
+      }
+    },
+    {
+      "object": "app.membership_plans.chk_membership_plans_duration_unit",
+      "left": {
+        "nspname": "app",
+        "relname": "membership_plans",
+        "conname": "chk_membership_plans_duration_unit",
+        "definition": "CHECK (((duration_unit)::text = ANY ((ARRAY['days'::character varying, 'weeks'::character varying, 'months'::character varying, 'years'::character varying])::text[])))",
+        "convalidated": true
+      },
+      "right": {
+        "nspname": "app",
+        "relname": "membership_plans",
+        "conname": "chk_membership_plans_duration_unit",
+        "definition": "CHECK (((duration_unit)::text = ANY (ARRAY[('days'::character varying)::text, ('weeks'::character varying)::text, ('months'::character varying)::text, ('years'::character varying)::text])))",
+        "convalidated": true
+      }
+    },
+    {
+      "object": "app.membership_plans.chk_membership_plans_status",
+      "left": {
+        "nspname": "app",
+        "relname": "membership_plans",
+        "conname": "chk_membership_plans_status",
+        "definition": "CHECK (((status)::text = ANY ((ARRAY['draft'::character varying, 'active'::character varying, 'inactive'::character varying])::text[])))",
+        "convalidated": true
+      },
+      "right": {
+        "nspname": "app",
+        "relname": "membership_plans",
+        "conname": "chk_membership_plans_status",
+        "definition": "CHECK (((status)::text = ANY (ARRAY[('draft'::character varying)::text, ('active'::character varying)::text, ('inactive'::character varying)::text])))",
+        "convalidated": true
+      }
+    },
+    {
+      "object": "app.membership_promotions.chk_membership_promotions_status",
+      "left": {
+        "nspname": "app",
+        "relname": "membership_promotions",
+        "conname": "chk_membership_promotions_status",
+        "definition": "CHECK (((status)::text = ANY ((ARRAY['draft'::character varying, 'active'::character varying, 'inactive'::character varying])::text[])))",
+        "convalidated": true
+      },
+      "right": {
+        "nspname": "app",
+        "relname": "membership_promotions",
+        "conname": "chk_membership_promotions_status",
+        "definition": "CHECK (((status)::text = ANY (ARRAY[('draft'::character varying)::text, ('active'::character varying)::text, ('inactive'::character varying)::text])))",
+        "convalidated": true
+      }
+    },
+    {
+      "object": "app.payment_receipts.payment_receipts_method_code_check",
+      "left": {
+        "nspname": "app",
+        "relname": "payment_receipts",
+        "conname": "payment_receipts_method_code_check",
+        "definition": "CHECK (((method_code)::text = ANY ((ARRAY['cash'::character varying, 'bank_transfer'::character varying, 'mobile_wallet'::character varying, 'card'::character varying])::text[])))",
+        "convalidated": true
+      },
+      "right": {
+        "nspname": "app",
+        "relname": "payment_receipts",
+        "conname": "payment_receipts_method_code_check",
+        "definition": "CHECK (((method_code)::text = ANY (ARRAY[('cash'::character varying)::text, ('bank_transfer'::character varying)::text, ('mobile_wallet'::character varying)::text, ('card'::character varying)::text])))",
+        "convalidated": true
+      }
+    },
+    {
+      "object": "app.payment_reconciliations.payment_reconciliations_status_check",
+      "left": {
+        "nspname": "app",
+        "relname": "payment_reconciliations",
+        "conname": "payment_reconciliations_status_check",
+        "definition": "CHECK (((status)::text = ANY ((ARRAY['matched'::character varying, 'variance'::character varying])::text[])))",
+        "convalidated": true
+      },
+      "right": {
+        "nspname": "app",
+        "relname": "payment_reconciliations",
+        "conname": "payment_reconciliations_status_check",
+        "definition": "CHECK (((status)::text = ANY (ARRAY[('matched'::character varying)::text, ('variance'::character varying)::text])))",
+        "convalidated": true
+      }
+    },
+    {
+      "object": "app.payment_reversals.payment_reversals_reversal_kind_check",
+      "left": {
+        "nspname": "app",
+        "relname": "payment_reversals",
+        "conname": "payment_reversals_reversal_kind_check",
+        "definition": "CHECK (((reversal_kind)::text = ANY ((ARRAY['refund'::character varying, 'void'::character varying])::text[])))",
+        "convalidated": true
+      },
+      "right": {
+        "nspname": "app",
+        "relname": "payment_reversals",
+        "conname": "payment_reversals_reversal_kind_check",
+        "definition": "CHECK (((reversal_kind)::text = ANY (ARRAY[('refund'::character varying)::text, ('void'::character varying)::text])))",
+        "convalidated": true
+      }
+    },
+    {
+      "object": "app.plan_prices.chk_plan_prices_status",
+      "left": {
+        "nspname": "app",
+        "relname": "plan_prices",
+        "conname": "chk_plan_prices_status",
+        "definition": "CHECK (((status)::text = ANY ((ARRAY['active'::character varying, 'inactive'::character varying])::text[])))",
+        "convalidated": true
+      },
+      "right": {
+        "nspname": "app",
+        "relname": "plan_prices",
+        "conname": "chk_plan_prices_status",
+        "definition": "CHECK (((status)::text = ANY (ARRAY[('active'::character varying)::text, ('inactive'::character varying)::text])))",
+        "convalidated": true
+      }
+    },
+    {
+      "object": "app.pos_sale_returns.pos_sale_returns_action_code_check",
+      "left": {
+        "nspname": "app",
+        "relname": "pos_sale_returns",
+        "conname": "pos_sale_returns_action_code_check",
+        "definition": "CHECK (((action_code)::text = ANY ((ARRAY['refund'::character varying, 'void'::character varying])::text[])))",
+        "convalidated": true
+      },
+      "right": {
+        "nspname": "app",
+        "relname": "pos_sale_returns",
+        "conname": "pos_sale_returns_action_code_check",
+        "definition": "CHECK (((action_code)::text = ANY (ARRAY[('refund'::character varying)::text, ('void'::character varying)::text])))",
+        "convalidated": true
+      }
+    },
+    {
+      "object": "app.roles.roles_status_check",
+      "left": {
+        "nspname": "app",
+        "relname": "roles",
+        "conname": "roles_status_check",
+        "definition": "CHECK (((status)::text = ANY ((ARRAY['active'::character varying, 'inactive'::character varying])::text[])))",
+        "convalidated": true
+      },
+      "right": {
+        "nspname": "app",
+        "relname": "roles",
+        "conname": "roles_status_check",
+        "definition": "CHECK (((status)::text = ANY (ARRAY[('active'::character varying)::text, ('inactive'::character varying)::text])))",
+        "convalidated": true
+      }
+    },
+    {
+      "object": "app.subscription_renewals.chk_subscription_renewals_duration_unit",
+      "left": {
+        "nspname": "app",
+        "relname": "subscription_renewals",
+        "conname": "chk_subscription_renewals_duration_unit",
+        "definition": "CHECK (((duration_unit)::text = ANY ((ARRAY['days'::character varying, 'weeks'::character varying, 'months'::character varying, 'years'::character varying])::text[])))",
+        "convalidated": true
+      },
+      "right": {
+        "nspname": "app",
+        "relname": "subscription_renewals",
+        "conname": "chk_subscription_renewals_duration_unit",
+        "definition": "CHECK (((duration_unit)::text = ANY (ARRAY[('days'::character varying)::text, ('weeks'::character varying)::text, ('months'::character varying)::text, ('years'::character varying)::text])))",
+        "convalidated": true
+      }
+    },
+    {
+      "object": "app.tenant_memberships.tenant_memberships_status_check",
+      "left": {
+        "nspname": "app",
+        "relname": "tenant_memberships",
+        "conname": "tenant_memberships_status_check",
+        "definition": "CHECK (((status)::text = ANY ((ARRAY['invited'::character varying, 'active'::character varying, 'suspended'::character varying, 'revoked'::character varying])::text[])))",
+        "convalidated": true
+      },
+      "right": {
+        "nspname": "app",
+        "relname": "tenant_memberships",
+        "conname": "tenant_memberships_status_check",
+        "definition": "CHECK (((status)::text = ANY (ARRAY[('invited'::character varying)::text, ('active'::character varying)::text, ('suspended'::character varying)::text, ('revoked'::character varying)::text])))",
+        "convalidated": true
+      }
+    },
+    {
+      "object": "app.users.users_status_check",
+      "left": {
+        "nspname": "app",
+        "relname": "users",
+        "conname": "users_status_check",
+        "definition": "CHECK (((status)::text = ANY ((ARRAY['pending'::character varying, 'active'::character varying, 'suspended'::character varying, 'disabled'::character varying])::text[])))",
+        "convalidated": true
+      },
+      "right": {
+        "nspname": "app",
+        "relname": "users",
+        "conname": "users_status_check",
+        "definition": "CHECK (((status)::text = ANY (ARRAY[('pending'::character varying)::text, ('active'::character varying)::text, ('suspended'::character varying)::text, ('disabled'::character varying)::text])))",
+        "convalidated": true
+      }
+    },
+    {
+      "object": "platform.tenants.tenants_status_check",
+      "left": {
+        "nspname": "platform",
+        "relname": "tenants",
+        "conname": "tenants_status_check",
+        "definition": "CHECK (((status)::text = ANY ((ARRAY['pending'::character varying, 'active'::character varying, 'suspended'::character varying, 'terminated'::character varying])::text[])))",
+        "convalidated": true
+      },
+      "right": {
+        "nspname": "platform",
+        "relname": "tenants",
+        "conname": "tenants_status_check",
+        "definition": "CHECK (((status)::text = ANY (ARRAY[('pending'::character varying)::text, ('active'::character varying)::text, ('suspended'::character varying)::text, ('terminated'::character varying)::text])))",
+        "convalidated": true
+      }
+    },
+    {
+      "object": "platform.tenants.tenants_tenant_type_check",
+      "left": {
+        "nspname": "platform",
+        "relname": "tenants",
+        "conname": "tenants_tenant_type_check",
+        "definition": "CHECK (((tenant_type)::text = ANY ((ARRAY['independent'::character varying, 'multi_branch'::character varying])::text[])))",
+        "convalidated": true
+      },
+      "right": {
+        "nspname": "platform",
+        "relname": "tenants",
+        "conname": "tenants_tenant_type_check",
+        "definition": "CHECK (((tenant_type)::text = ANY (ARRAY[('independent'::character varying)::text, ('multi_branch'::character varying)::text])))",
+        "convalidated": true
+      }
+    }
+  ],
+  "indexes": [
+    {
+      "object": "app.member_subscriptions.idx_member_subscriptions_expiry",
+      "left": {
+        "schemaname": "app",
+        "tablename": "member_subscriptions",
+        "indexname": "idx_member_subscriptions_expiry",
+        "indexdef": "CREATE INDEX idx_member_subscriptions_expiry ON app.member_subscriptions USING btree (tenant_id, ends_on) WHERE ((status)::text = ANY ((ARRAY['active'::character varying, 'suspended'::character varying])::text[]))"
+      },
+      "right": {
+        "schemaname": "app",
+        "tablename": "member_subscriptions",
+        "indexname": "idx_member_subscriptions_expiry",
+        "indexdef": "CREATE INDEX idx_member_subscriptions_expiry ON app.member_subscriptions USING btree (tenant_id, ends_on) WHERE ((status)::text = ANY (ARRAY[('active'::character varying)::text, ('suspended'::character varying)::text]))"
+      }
+    },
+    {
+      "object": "app.member_subscriptions.uq_member_subscriptions_current_member",
+      "left": {
+        "schemaname": "app",
+        "tablename": "member_subscriptions",
+        "indexname": "uq_member_subscriptions_current_member",
+        "indexdef": "CREATE UNIQUE INDEX uq_member_subscriptions_current_member ON app.member_subscriptions USING btree (tenant_id, member_id) WHERE ((status)::text = ANY ((ARRAY['active'::character varying, 'suspended'::character varying])::text[]))"
+      },
+      "right": {
+        "schemaname": "app",
+        "tablename": "member_subscriptions",
+        "indexname": "uq_member_subscriptions_current_member",
+        "indexdef": "CREATE UNIQUE INDEX uq_member_subscriptions_current_member ON app.member_subscriptions USING btree (tenant_id, member_id) WHERE ((status)::text = ANY (ARRAY[('active'::character varying)::text, ('suspended'::character varying)::text]))"
+      }
+    }
+  ]
+}
