@@ -1,0 +1,30 @@
+﻿{
+    "scope":  "Isolated Authenticator MFA lab",
+    "enrollment":  "passed",
+    "authenticatorLogin":  "passed",
+    "backupCodeLogin":  "passed",
+    "usedBackupCodeRejected":  "passed",
+    "explicitDisable":  "passed",
+    "passwordOnlyLoginAfterDisable":  "passed",
+    "evidence":  "User confirmations and browser screenshots 20261025-111754, 112323, 112528, 112810; password-only login after disable confirmed; runner cleanup output confirmed.",
+    "fullSuitePassed":  true,
+    "passedTests":  1556,
+    "httpDatabaseChecks":  99,
+    "mfaSpecificChecks":  30,
+    "fixturesRemoved":  true,
+    "apiAndClusterStopped":  true,
+    "reportFolder":  "C:\\Projects\\gympro-backups\\mfa-lab-20261025174311_8d8342",
+    "workingDatabaseChanged":  false,
+    "productionAppSourceChanged":  false,
+    "productionMfaEnabled":  false,
+    "productionReady":  false,
+    "kbzPayDeferred":  true,
+    "remaining0toE":  [
+                          "0: controlled live migration ledger, clean-machine deployment and CI/staging",
+                          "A: production recovery mail/outbox, persistent MFA key custody/rotation, privileged MFA policy, app login integration, audit/retention and proxy/shared limits",
+                          "B: member edit/history, plans/prices UI and remaining lifecycle workflows",
+                          "C: card replacement/printing, attendance corrections and device UAT",
+                          "D/E: connected checkout/payment/receipt, closing, stock operations and reconciliation exceptions"
+                      ],
+    "recordedAt":  "2026-10-25T18:03:12.3975877+06:30"
+}
